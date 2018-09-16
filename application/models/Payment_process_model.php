@@ -197,30 +197,7 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
                 $supplier_type = 0;
                 $third_party_id = $this->input->post('third_party_id');
                 $pp_title = $this->input->post('pp_title');
-                //$third_party_name = $this->input->post('third_party_name');
-                /* third party 
-                if (isset($third_party_id) && $third_party_id != 0){
-                    $thirdparty = $this->get_third_party_by_id($third_party_id);
-                    if ($thirdparty->num_rows()!=0){
-                        $row = $thirdparty->row();
-                        $pp_title = $row->third_party_name;
-                    }
-                } else {
-                    $check_third= $this->get_third_party_by_name($third_party_name);
-                    if ($check_third->num_rows()==0){
-                        $datathird= array(
-                            'third_party_name' => $third_party_name,
-                            'description' => '-'
-                        );
-                        $this->db->insert('third_party', $datathird);
-                        $third_party_id = $this->db->insert_id();
-                        $pp_title = $third_party_name;
-                    } else {
-                        $rowthird = $check_third->row();
-                        $third_party_id = $rowthird->third_party_id;
-                        $pp_title = $third_party_name;
-                    }
-                }     */           
+        
                 break;
             case 4:
                 $pp_title = $this->input->post('pp_title');
@@ -228,22 +205,6 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
                 $branch_id = $this->input->post('branch_id');
                 $supplier_type = 0;
                 $vendor_id = $this->input->post('vendor_id');
-                //$vendor_name = $this->input->post('vendor_name');
-                /* vendor */
-//                if ($vendor_id == 0){
-//                    $check_vendor= $this->get_vendor_by_name($vendor_name);
-//                    if ($check_vendor->num_rows()==0){
-//                        $datavendor= array(
-//                            'vendor_name' => $vendor_name,
-//                            'description' => '-'
-//                        );
-//                        $this->db->insert('vendor', $datavendor);
-//                        $vendor_id = $this->db->insert_id();
-//                    } else {
-//                        $rowvendor = $check_vendor->row();
-//                        $vendor_id = $rowvendor->vendor_id;
-//                    }
-//                }
                 break;
         }
         
@@ -274,6 +235,39 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         if ($pp_type != 1){
             // insert to detail pp
             $this->insert_detail($pp_id, $job_order, $description, $unit, $price, $branch_id);
+            // insert to third party balance 2018-09-11
+            if ($pp_type == 3){
+                $data_third_party = array(
+                    'balance_date' => $pp_date,
+                    'third_party_id' => $third_party_id,
+                    'pp_id' => $pp_id,
+                    'outstanding_id' => 0,
+                    'debit' => $total,
+                    'credit' => 0
+                );
+                $this->db->insert('third_party_balance', $data_third_party);
+            }
+            if ($pp_type == 4){
+                // insert to project balance
+                $project_balance = array(
+                    'balance_date'=>$pp_date,
+                    'vendor_id'=>$vendor_id,
+                    'pp_id'=>$pp_id,
+                    'project_debit_id'=>0,
+                    'debit'=>0,
+                    'credit'=>$total
+                );
+                $this->db->insert('project_balance', $project_balance);
+            }
+        } else {
+            // update code 2018-09-07 insert to supplier balance
+            $data_balance = array(
+                'balance_date'=>$pp_date,
+                'supplier_id'=>$supplier_id,
+                'pp_id'=>$pp_id,
+                'credit'=>$total
+            );
+            $this->db->insert('supplier_balance', $data_balance);
         }
         
         return $pp_id;
@@ -300,6 +294,15 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
                     $row = $supplierdata->row();
                     $pp_title = $row->supplier_name;
                 }
+                
+                // update code 2018-09-07 insert to supplier balance
+                $data_balance = array(
+                    'balance_date'=>$pp_date,
+                    'supplier_id'=>$supplier_id
+                );
+                $this->db->where('pp_id', $pp_id);
+                $this->db->update('supplier_balance', $data_balance);
+                
                 break;
             case 2:
                 $pp_title = $this->input->post('pp_title');
@@ -350,6 +353,15 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         }
         $this->db->where('pp_id', $id);
         $this->db->delete('payment_process');
+        // delete supplier balance
+        $this->db->where('pp_id', $id);
+        $this->db->delete('supplier_balance');
+        // delete third party balance
+        $this->db->where('pp_id', $id);
+        $this->db->delete('third_party_balance');
+        // delete project balance
+        $this->db->where('pp_id', $id);
+        $this->db->delete('project_balance');
     }
     
     public function get_detail_by_pp_id($pp_id=0) {
@@ -529,6 +541,72 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
 
         $this->insert_detail($pp_id, $job_order, $description, $unit, $price, $branch_id);
 
+        return $pp_id;
+    }
+    
+    public function insert_ppoutstanding($pp_type=0) {
+        $pp_number = $this->input->post('pp_number');
+        $payment_mode = $this->input->post('payment_mode');
+        $pp_date = $this->input->post('pp_date');
+        $pp_due_date = '';
+        $cash_request_id = $this->input->post('cash_request_id');
+        $third_party_id = $this->input->post('third_party_id');
+        
+        // for detail pp (2018-03-13)
+        $job_order = $this->input->post('job_order');
+        $description = $this->input->post('description');
+        $unit = $this->input->post('unit');
+        $price = $this->general_model->change_decimal($this->input->post('price'));
+        
+        $total = 0;
+        if ($unit >= 1 && $price > 0){
+            $total = $unit * $price;
+        } else {
+            $total = 0;
+        }
+
+        $pp_title = $this->input->post('pp_title');
+        $supplier_id = 0;
+        $supplier_type = 0;
+        $branch_id = $this->input->post('branch_id');
+        
+        $data = array(
+            'pp_title' => $pp_title,
+            'pp_number' => $pp_number,
+            'pp_date' => $pp_date,
+            'pp_due_date' => $pp_due_date,
+            'total' => $total,
+            'payment_mode' => $payment_mode,
+            'prepare_by' => $this->session->userdata('user_id'),
+            'cross_check_by' => 0,
+            'checked_by' => 0,
+            'approved_by' => 0,
+            'pp_status' => 0,
+            'pp_type' => $pp_type,
+            'supplier_type' => $supplier_type,
+            'supplier_id' => $supplier_id,
+            'branch_id' => $branch_id,
+            'cash_request_id' => $cash_request_id,
+            'third_party_id' => 0,
+            'vendor_id' => 0,
+            'third_party_id' => $third_party_id,
+            'username' => $this->session->userdata('username')
+        );
+        $this->db->insert('payment_process', $data);
+        $pp_id = $this->db->insert_id(); /*get trans id*/
+
+        $this->insert_detail($pp_id, $job_order, $description, $unit, $price, $branch_id);
+
+        $data_third_party = array(
+            'balance_date' => $pp_date,
+            'third_party_id' => $third_party_id,
+            'pp_id' => $pp_id,
+            'outstanding_id' => 0,
+            'debit' => $total,
+            'credit' => 0
+        );
+        $this->db->insert('third_party_balance', $data_third_party);
+        
         return $pp_id;
     }
 }

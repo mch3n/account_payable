@@ -12,7 +12,11 @@ if ($credit_invoice->num_rows()!=0){
         </div>
         <div class="box-body">
             <?php
-
+                $ci_status_arr = array(
+                    '<span class="label label-warning">In Progress</span>', 
+                    '<span class="label label-primary">To be Paid</span>', 
+                    '<span class="label label-success">Closed</span>'
+                   );
                 echo '<table class="table">
                     <tr>
                         <th>ID Credit Invoice</th>
@@ -58,7 +62,10 @@ if ($credit_invoice->num_rows()!=0){
                         <th>Amount</th>
                         <td>'.number_format($row->amount).'</td>
                     </tr>
-                    
+                    <tr>
+                        <th>Status</th>
+                        <td>'.$ci_status_arr[$row->po_status].'</td>
+                    </tr>
                 </table>';
             ?>
         </div>

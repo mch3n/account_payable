@@ -40,6 +40,16 @@ if ($pp_info->num_rows()!=0){
                     ?>
                 </div>
                 <h4><?php echo $row->pp_title ?></h4>
+                <div class="form-body">
+                    <?php
+                        echo form_open('ppdetail/ppoutstanding_update_third_party_id');
+                        echo '<input type="hidden" name="pp_encrypt" value="'.$up_encrypt_id.'">';
+                        echo '<input type="hidden" name="pp_id" value="'.$data_pp_id.'">';
+                        echo $third_party_id;
+                        echo '<input type="submit" class="btn btn-success btn-sm" value="Save Change">';
+                        echo form_close();  
+                    ?>
+                </div>
             </div>
         </div>
         <div class="box-body table-responsive">

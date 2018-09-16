@@ -453,18 +453,20 @@ class Report extends CI_Controller {
         $data['start_date'] = $start_date;
         $data['end_date'] = $end_date;
         /* update code : 2018-03-20 */
+
+        $opening_date = '2018-02-01';
         
-        $first_date = substr($start_date, 0, 8).'01';
-        if ($start_date == $first_date){
+        if ($start_date == $opening_date){
             $previous_balance = 0;
             $data['previous_date'] = $start_date;
         } else {
             $previous_date = date('Y-m-d', strtotime('-1 day', strtotime($start_date)));
             $data['previous_date'] = $previous_date;
-            $previous_balance = $this->ledger_model->get_previous_balance($account_id, $first_date, $previous_date);
+            $previous_balance = $this->ledger_model->get_previous_balance($account_id, $opening_date, $previous_date);
         }
+        
         $data['previous_balance'] = $previous_balance;
-        $data['next_balance'] = $this->ledger_model->get_previous_balance($account_id, $start_date, $end_date);
+        $data['next_balance'] = $this->ledger_model->get_previous_balance($account_id, $opening_date, $end_date);
         
         ///////////////////////////////////
         $this->load->model('account_model');

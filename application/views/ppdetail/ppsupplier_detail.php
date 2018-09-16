@@ -260,9 +260,11 @@ $iconfile = array(
         </div>
         <div class="box-body">
             <?php
-            if ($cinvoice_file->num_rows()!=0){
-                foreach ($cinvoice_file->result() as $value) {
-                    echo '<div><a href="'. base_url().'assets/creditinvoice/'.$value->file_name.'" target="_blank">'.$value->file_name.'</a></div>';
+            if ($is_cinvoice_file == 1){
+                if ($cinvoice_file->num_rows()!=0){
+                    foreach ($cinvoice_file->result() as $value) {
+                        echo '<div><a href="'. base_url().'assets/creditinvoice/'.$value->file_name.'" target="_blank">'.$value->file_name.'</a></div>';
+                    }
                 }
             }
             ?>

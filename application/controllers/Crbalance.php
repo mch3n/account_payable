@@ -250,7 +250,7 @@ class Crbalance extends CI_Controller {
     
     public function get_balance_detail($employee_id=0) {
         $sql  = 'SELECT crb.cash_request_id, crb.balance_date, cr.cash_request_number, b.branch_name, cr.cash_request_status, 
-        SUM(crb.debit) AS debit_total,  SUM(crb.credit) AS credit_total, cr.employee_id FROM cash_request_balance AS crb
+        SUM(crb.debit) AS debit_total,  SUM(crb.credit) AS credit_total, cr.employee_id, crb.balance_status FROM cash_request_balance AS crb
         INNER JOIN cash_request AS cr ON cr.cash_request_id=crb.cash_request_id
         INNER JOIN branch AS b ON cr.branch_id=b.branch_id
         WHERE cr.employee_id='.$employee_id.' 
@@ -270,7 +270,14 @@ class Crbalance extends CI_Controller {
                 $this->category = $category;
                 $this->module = $module;
                 $data['pagecode'] = $string;
-                
+                // update 2018-08-17
+                $adjustment_priv = $this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_checked);
+                $data['adjustment_priv'] = $adjustment_priv;
+                $data['cash_request_balance_id'] = $this->general_model->draw_hidden_field('cash_request_balance_id', '');
+                $data['cash_request_id'] = $this->general_model->draw_hidden_field('cash_request_id', $cash_request_id);
+                $data['transaction_id'] = $this->general_model->draw_hidden_field('transaction_id', '');
+                $data['debit'] = $this->general_model->draw_input_currency('Debit', 1, 'debit', '');
+                $data['credit'] = $this->general_model->draw_input_currency('Credit', 1, 'credit', '');
                 $data['detail'] = $this->get_more_detail($cash_request_id);
                 $employee_name = '<a href="'. site_url('crbalance/detail/'.$string.'/'.$employee_id).'">'.$this->get_employee_name($employee_id).'</a>';
                 /* ===== start datatable ===== */
@@ -340,5 +347,49 @@ class Crbalance extends CI_Controller {
         $sql .= 'ORDER BY balance_date';
         $query = $this->db->query($sql);
         return $query;
+    }
+    
+    public function get_cash_request_balance($cash_request_balance_id=0) {
+        $sql  = 'SELECT * FROM cash_request_balance WHERE cash_request_balance_id='.$cash_request_balance_id;
+        $query = $this->db->query($sql);
+        return $query;
+    }
+    
+    public function save_adjustment() {
+        $debit = $this->general_model->change_decimal($this->input->post('debit'));
+        $credit = $this->general_model->change_decimal($this->input->post('credit'));
+        $cash_request_balance_id = $this->input->post('cash_request_balance_id');
+        $cash_request_id = $this->input->post('cash_request_id');
+        $trans_id = $this->input->post('transaction_id');
+        if ($cash_request_balance_id == 0){
+            $data = array(
+                'balance_date' => date('Y-m-d'),
+                'cash_request_id' => $cash_request_id,
+                'trans_id' => $trans_id,
+                'pv_number' => '-',                
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance_status' => 1
+            );
+
+            $this->db->insert('cash_request_balance', $data);
+        } else {
+            $data = array(
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance_status' => 1
+            );
+
+            $this->db->where('cash_request_balance_id', $cash_request_balance_id);
+            $this->db->update('cash_request_balance', $data);
+        }
+        
+
+        echo json_encode(array("status" => TRUE));
+    }
+    
+    public function ajax_adjustment($id) {
+        $data = $this->get_cash_request_balance($id)->row();
+        echo json_encode($data);
     }
 }

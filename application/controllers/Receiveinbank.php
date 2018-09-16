@@ -97,7 +97,7 @@ class Receiveinbank extends CI_Controller {
                 if ($outstanding->num_rows()!=0){
                     $outstanding_opt[0] = 'None';
                     foreach ($outstanding->result() as $value) {
-                        $outstanding_opt[$value->outstanding_id] = $value->outstanding_date . ' - '.$value->outstanding_description.' - '.number_format($value->amount) . ' - '.$value->branch_name;
+                        $outstanding_opt[$value->outstanding_id] = $value->pp_number . ' - '.$value->third_party_name.' - '.number_format($value->amount);
                     }
                 }
                 $data['outstanding_id'] = $this->general_model->draw_select('Outstanding Third Party', 0, 'outstanding_id', 1, $outstanding_opt, '', 1);
@@ -236,12 +236,14 @@ class Receiveinbank extends CI_Controller {
     }
     
     public function get_outstanding() {
-        $sql  = 'SELECT os.outstanding_id, os.outstanding_number, os.outstanding_date, os.outstanding_description, ';
-        $sql .= 'b.branch_name, os.amount, os.outstanding_status FROM outstanding AS os ';
-        $sql .= 'INNER JOIN branch AS b ON os.branch_id=b.branch_id ';
-        $sql .= 'WHERE os.outstanding_status = 0 ';
-        $sql .= 'AND os.outstanding_type=3';
-        
+//        $sql  = 'SELECT os.outstanding_id, os.outstanding_number, os.outstanding_date, os.outstanding_description, ';
+//        $sql .= 'b.branch_name, os.amount, os.outstanding_status FROM outstanding AS os ';
+//        $sql .= 'INNER JOIN branch AS b ON os.branch_id=b.branch_id ';
+//        $sql .= 'WHERE os.outstanding_status = 0 ';
+//        $sql .= 'AND os.outstanding_type=3';
+        $sql  = 'SELECT os.outstanding_id, t.third_party_name, p.pp_number, os.amount FROM outstanding AS os ';
+        $sql .= 'INNER JOIN third_party AS t ON os.third_party_id=t.third_party_id ';
+        $sql .= 'INNER JOIN payment_process AS p ON os.pp_id=p.pp_id ';
         $query = $this->db->query($sql);
         return $query;
     }

@@ -189,7 +189,7 @@ class Payment_voucher_model extends CI_Model {
                             $this->ledger_model->insert_ledger($trans_id, $account_from, 0, $total_all, 'O/S3');
                             // insert to RECEIVABLE QTR
                             $this->ledger_model->insert_ledger($trans_id, $account_to, $total_all, 0, 'O/S3');
-                            $this->insert_to_outstanding($pv_date, $pv_title, $total_all, $branch_id, $pv_number, $pp_type, $trans_id, $third_party_id);
+                            $this->insert_to_outstanding($pv_date, $pv_title, $total_all, $branch_id, $pv_number, $pp_type, $trans_id, $third_party_id, $pp_id);
                         }
                     }
                 }
@@ -248,10 +248,6 @@ class Payment_voucher_model extends CI_Model {
             );
             $this->db->insert('payment_voucher', $data);
             $pv_id = $this->db->insert_id();
-            // update 2018-08-07
-            if ($pv_id != 0 && ($pp_type == 1 || $pp_type == 3 || $pp_type == 4)){
-                $this->insert_balance($pv_id, $pv_date, $trans_id, $total, $pp_id, $pp_type, $arr);
-            }
             return $pv_id;
         } else {
             return 0;
@@ -458,7 +454,7 @@ class Payment_voucher_model extends CI_Model {
         $this->db->update('cash_request', $data);
     }
     
-    public function insert_to_outstanding($pv_date='', $description='', $amount=0, $branch_id=0, $pv_number='', $outstanding_type=0, $trans_id=0, $third_party_id=0) {
+    public function insert_to_outstanding($pv_date='', $description='', $amount=0, $branch_id=0, $pv_number='', $outstanding_type=0, $trans_id=0, $third_party_id=0, $pp_id=0) {
         /* 
          * ===== OUTSTANDING TYPE =====
          * O/S CASH REQUEST = 1
@@ -477,9 +473,17 @@ class Payment_voucher_model extends CI_Model {
             'pv_number' => $pv_number,
             'outstanding_type' => $outstanding_type,
             'trans_id' => $trans_id,
-            'third_party_id' => $third_party_id
+            'third_party_id' => $third_party_id,
+            'pp_id'=> $pp_id
         );
         $this->db->insert('outstanding', $data);
+        $outstanding_id = $this->db->insert_id();
+        // update third_party_balance 2018-09-11
+        $data_third_party = array(
+            'outstanding_id' => $outstanding_id
+        );
+        $this->db->where('pp_id', $pp_id);
+        $this->db->update('third_party_balance', $data_third_party); 
     }
     
     public function insert_to_expense($pv_date='', $title='', $amount=0, $branch_id=0, $pv_number='', $trans_id=0, $ex_type=0) {

@@ -666,4 +666,151 @@ class Paymentprocess extends CI_Controller {
         redirect($link);
     }
 
+    /* update 2018-09-04 */
+    public function ppoutstanding($string='', $param_pp_id=0, $param_cr_id=0, $process=0, $detail_id=0, $pp_type=3) {
+        $this->asik_model->is_login();
+        $category = substr($string, 0, 6);
+        $module = substr($string, 6, 8);
+        $is_module = $this->is_check_module($string, $category, $module);
+        if ($is_module) {
+            if($this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_view_data)){
+                /* start privilege */
+                // value = TRUE or FALSE
+                $data['action_cross_check'] = $this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_cross_check);
+                $data['action_checked'] = $this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_checked);
+                $data['action_approved'] = $this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_approved);
+                // ====== inisialisasi ======
+               
+                $pp_id = 0;
+                $pp_number = $this->general_model->get_generate_number('OT', 'payment_process', 'pp_id');
+                $pp_date = date('Y-m-d');
+                $payment_mode = 0;
+                $pp_title = '';
+                $branch_id = 0;
+                $cash_request_id = $param_cr_id;
+                $third_party_id = 0;
+                $pp_status = 0;
+                $prepare_by = 0;
+                $cross_check_by = 0;
+                $checked_by = 0;
+                $approved_by = 0;
+                
+                //======= process insert =======
+                $this->load->model('ppdetail_model');
+                $detail = $this->ppdetail_model->get_detail_by_pp_id($param_pp_id);
+                switch ($process) {
+                    case 1:
+                        $pp_id = $this->payment_process_model->insert_ppoutstanding($pp_type);
+                        $param_pp_id = $pp_id;
+                        break;
+                    case 2:
+                        if ($detail_id != 0){
+                            $this->ppdetail_model->delete_by_id($detail_id);
+                            $pp_id = $param_pp_id;
+                        } else {
+                            $this->ppdetail_model->insert_ppoutstanding();
+                            $pp_id = $param_pp_id;
+                        }
+                        break;
+                    case 3:
+                        $this->action_cross_check($param_pp_id);
+                        $pp_id = $param_pp_id;
+                        break;
+                    case 4:
+                        $this->action_checked($param_pp_id);
+                        $pp_id = $param_pp_id;
+                        break;
+                    case 5:
+                        $this->action_approved($param_pp_id);
+                        $pp_id = $param_pp_id;
+                        break;
+                }
+
+                if ($pp_id != 0){
+                    $pp = $this->payment_process_model->get_payment_process_by_id($pp_id);
+                    if ($pp->num_rows()!=0){
+                        $row = $pp->row();
+                        $pp_id = $row->pp_id;
+                        $pp_number = $row->pp_number;
+                        $pp_date = $row->pp_date;
+                        $payment_mode = $row->payment_mode;
+                        $pp_title = $row->pp_title;
+                        $third_party_id = $row->third_party_id;
+                        $branch_id = $row->branch_id;
+                        $cash_request_id = $row->cash_request_id;
+                        $pp_status = $row->pp_status;
+                        $prepare_by = $row->prepare_by;
+                        $cross_check_by = $row->cross_check_by;
+                        $checked_by = $row->checked_by;
+                        $approved_by = $row->approved_by;
+                    }
+                    $detail = $this->ppdetail_model->get_detail_by_pp_id($pp_id);
+                }
+ 
+                $data['cross_check_link'] = 'paymentprocess/ppgeneral/20191231214301/'.$param_pp_id.'/0/3/';
+                $data['check_link'] = 'paymentprocess/ppgeneral/20191231214301/'.$param_pp_id.'/0/4/';
+                $data['approve_link'] = 'paymentprocess/ppgeneral/20191231214301/'.$param_pp_id.'/0/5/';
+                $cash_request_number = $this->get_crnumber_by_id($cash_request_id);
+                
+                $this->load->model('branch_model');
+                $branch_data = $this->branch_model->get_branch_list();
+                $branch_opt = array();
+                if ($branch_data->num_rows()!=0){
+                    foreach ($branch_data->result() as $value) {
+                        $branch_opt[$value->branch_id] = $value->branch_name;
+                    }
+                }
+                $data['param_pp_id'] = $param_pp_id;
+                /*input global */
+                $data['pp_id'] = $this->general_model->draw_hidden_field('pp_id', $pp_id);
+                $data['pp_number_disabled'] = $this->general_model->draw_text_disabled('PP Number', 'pp_number_disabled', $pp_number);
+                $data['pp_number'] = $this->general_model->draw_hidden_field('pp_number', $pp_number); 
+                $data['pp_date'] = $this->general_model->draw_datepicker('PP Date', 1, 'pp_date', $pp_date);
+                $payment_opt = array('Cash', 'Transfer ATM', 'Online (Token)', 'Cek', 'BG');
+                $data['payment_mode'] = $this->general_model->draw_select('Payment Method', 0, 'payment_mode', 0, $payment_opt, $payment_mode);
+                $data['pp_title'] = $this->general_model->draw_text_field('PP Title', 1, 'pp_title', '', '', $pp_title);
+                $data['branch_id'] = $this->general_model->draw_select('Outlet (Branch)', 0, 'branch_id', 0, $branch_opt, $branch_id);
+                $data['cash_request_disabled'] = $this->general_model->draw_text_disabled('CR Number', 'cash_request_disabled', $cash_request_number);
+                $data['cash_request_id'] = $this->general_model->draw_hidden_field('cash_request_id', $cash_request_id);
+                $this->load->model('thirdparty_model');
+                $thirdparty = $this->thirdparty_model->get_third_party_list();
+                $thirdparty_opt = array();
+                if ($thirdparty->num_rows()!=0){
+                    $thirdparty_opt[0] = 'None';
+                    foreach ($thirdparty->result() as $value) {
+                        $thirdparty_opt[$value->third_party_id] = $value->third_party_name;
+                    }
+                }
+                $third_party_by_id = $this->thirdparty_model->get_third_party_by_id($third_party_id);
+                $thirdparty_name = '';
+                if ($third_party_by_id->num_rows()!=0){
+                    $row = $third_party_by_id->row();
+                    $thirdparty_name = $row->third_party_name;
+                }
+                $data['is_third_party_id'] = $third_party_id;
+                $data['label_third_party_id'] = $thirdparty_name;
+                $data['third_party_id'] = $this->general_model->draw_select('Select Third Party', 0, 'third_party_id', 1, $thirdparty_opt, '', 1);
+                $data['pp_status'] = $pp_status;
+                $data['prepare_by'] = $prepare_by;
+                $data['cross_check_by'] = $cross_check_by;
+                $data['checked_by'] = $checked_by;
+                $data['approved_by'] = $approved_by;
+                $data['detail'] = $detail;
+                
+                $data['datatable_title'] = '';
+                $data['footer_total'] = '';
+                /* ===== end datatable ===== */
+                $this->load->helper('form');
+                $data['active_li'] = $this->category_index;
+                $header = $this->asik_model->draw_header('PP Outstanding Form', 'View', $this->category_index, $this->category, $this->module);
+                $data['content_header'] = $header;
+                $data['halaman'] = 'paymentprocess/pp_outstanding_form.php';
+                $this->load->view('template', $data);
+            } else {
+                show_404();
+            }
+        } else {
+            show_404();
+        }
+    }
 }

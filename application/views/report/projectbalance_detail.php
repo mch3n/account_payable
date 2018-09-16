@@ -6,8 +6,7 @@
                     <tr>
                         <th>#</th>
                         <th>Date</th>
-                        <th>PP Number</th>
-                        <th>Outlet</th>
+                        <th>Ref Number</th>
                         <th>Status</th>
                         <th class="text-right">Debit</th>
                         <th class="text-right">Credit</th>
@@ -26,19 +25,31 @@
                     echo '<tbody>';
                     $no = 1;
                     $ppcode = $this->asik_model->category_configuration.$this->asik_model->config_01;
+                    $balance = 0;
                     foreach ($detail->result() as $value) {
+                        $number = '-';
+                        $status = '-';
                         $enc_id = $this->general_model->encrypt_value($value->pp_id);
                         $linkdetail = 'ppdetail/go/' . $ppcode.'/'.$enc_id.'/4/'; 
-                        
+                        if ($value->debit != 0){
+                            $balance += $value->debit;
+                        } else {
+                            $balance -= $value->credit;
+                        }
+                        if ($value->pp_id != 0){
+                            $status = $pp_status_arr[$arr_status[$value->pp_id]];
+                            $enc_id = $this->general_model->encrypt_value($value->pp_id);
+                            $linkdetail = 'ppdetail/go/' . $ppcode.'/'.$enc_id.'/4/'; 
+                            $number = '<a href="'. site_url($linkdetail).'" target="_blank">'.$arr_number[$value->pp_id].'</a>';
+                        }
                         echo '<tr>
                             <td>'.$no.'</td>
                             <td>'.$this->general_model->get_string_date_ver2($value->balance_date).'</td>
-                            <td><a href="'. site_url($linkdetail).'" target="_blank">'.$value->pp_number.'</a></td>
-                            <td>'.$value->branch_name.'</td>
-                            <td>'.$pp_status_arr[$value->pp_status].'</td>
+                            <td>'.$number.'</td>
+                            <td>'.$status.'</td>
                             <td class="text-right">'. number_format($value->debit).'</td>
                             <td class="text-right">'. number_format($value->credit).'</td>
-                            <td class="text-right">'. number_format($value->debit - $value->credit).'</td>
+                            <td class="text-right">'. number_format($balance).'</td>
                         </tr>';
                         
                         $no++;
@@ -50,8 +61,7 @@
                     <tr>
                         <th>#</th>
                         <th>Date</th>
-                        <th>PP Number</th>
-                        <th>Outlet</th>
+                        <th>Ref Number</th>
                         <th>Status</th>
                         <th class="text-right">Debit</th>
                         <th class="text-right">Credit</th>

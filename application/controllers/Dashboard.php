@@ -98,6 +98,9 @@ class Dashboard extends CI_Controller {
                 $data['total_remark'] = $total_remark;
                 $data['report_bank_balance'] = $this->get_report_bank_balance($datenow);
                 $data['report_expense'] = $this->get_report_expense($datenow);
+                $data['report_os_cash_request'] = $this->get_report_outstanding($datenow, 4);
+                $data['report_os_outlet'] = $this->get_report_outstanding($datenow, 5);
+                $data['report_os_third_party'] = $this->get_report_outstanding($datenow, 6);
                 $data['content_header'] = $header;
                 $data['active_li'] = $this->category_index;
                 $data['page_name'] = 'Dashboard';
@@ -146,11 +149,15 @@ class Dashboard extends CI_Controller {
     }
 
     public function get_bank_balance($month = '') {
+        $start_date = $month.'-01';
+        $end_date = $end = date("Y-m-t", strtotime($start_date));
+                            
         $sql = 'SELECT b.branch_id, a.account_id, b.branch_name, SUM(L.debit) AS total_debit, SUM(L.credit) AS total_credit
         FROM ledger AS L INNER JOIN transactions AS t ON L.trans_id=t.trans_id 
         INNER JOIN account AS a ON L.account_id=a.account_id 
         INNER JOIN branch AS b ON b.branch_id=a.branch_id 
-        WHERE L.account_id IN (7,8,9,10,11,12,13) AND t.trans_date LIKE "'.$month.'%" GROUP BY b.branch_id, a.account_id';
+        WHERE L.account_id IN (7,8,9,10,11,12,13) AND t.trans_date BETWEEN "2018-02-01" AND "'.$end_date.'" ';
+        $sql .= 'GROUP BY b.branch_id, a.account_id';
         $query = $this->db->query($sql);
         return $query;
     }
@@ -599,15 +606,19 @@ class Dashboard extends CI_Controller {
                 <tbody>';               
                 $total1 = 0;
                 $total2 = 0;
+                $report_type = 0;
                 switch ($type) {
                     case 1:
                         $exurl = $this->asik_model->category_report.$this->asik_model->report_04;
+                        $report_type = 4;
                         break;
                     case 2:
                         $exurl = $this->asik_model->category_report.$this->asik_model->report_05;
+                        $report_type = 5;
                         break;
                     case 3:
                         $exurl = $this->asik_model->category_report.$this->asik_model->report_06;
+                        $report_type = 6;
                         break;
                 }
                 if (sizeof($outstanding)!=0){
@@ -642,6 +653,23 @@ class Dashboard extends CI_Controller {
                         <th class="text-right">'. number_format($total2, 2) .'</th>
                     </tr>
                 </tfoot>
+            </table>';
+            $report_os = $this->get_report_outstanding($month, $report_type);    
+            echo '<table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Checked</th>
+                        <th>Approved</th>
+                        <th>Upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>'. $report_os[0] .'</td>
+                        <td>'. $report_os[1] .'</td>
+                        <td>'. $report_os[2] .'</td>
+                    </tr>
+                </tbody>
             </table>';
     }
     
@@ -697,6 +725,24 @@ class Dashboard extends CI_Controller {
         $end_date = $end = date("Y-m-t", strtotime($start_date));
         $sql = 'SELECT * FROM report_file WHERE start_date="' . $start_date . '" AND ';
         $sql .= 'end_date="' . $end_date . '" AND report_type=3';
+        $query = $this->db->query($sql);
+        $col = array('0','0','0');
+        if ($query->num_rows()!=0){
+            foreach ($query->result() as $value) {
+                $col[0] = isset($value->checked_by)?'<i class="fa fa-check"></i>':'0';
+                $col[1] = isset($value->approved_by)?'<i class="fa fa-check"></i>':'0';
+                $col[2] = isset($value->file_name)?'<i class="fa fa-check"></i>':'0';
+            }
+        }
+        
+        return $col;
+    }
+    
+    public function get_report_outstanding($yearmonth = '', $report_type=0) {
+        $start_date = $yearmonth . '-01';
+        $end_date = $end = date("Y-m-t", strtotime($start_date));
+        $sql  = 'SELECT * FROM report_file WHERE start_date="' . $start_date . '" AND ';
+        $sql .= 'end_date="' . $end_date . '" AND report_type='.$report_type;
         $query = $this->db->query($sql);
         $col = array('0','0','0');
         if ($query->num_rows()!=0){

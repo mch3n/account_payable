@@ -118,7 +118,7 @@ class Cashrequest_model extends CI_Model {
     }
     
     public function get_pp_by_cr_id($cash_request_id=0) {
-        $sql  = 'SELECT pp.pp_id, pp.pp_status, pp.pp_number, pp.pp_date, pp.total, b.branch_name, pp.pv_number 
+        $sql  = 'SELECT pp.pp_id, pp.pp_status, pp.pp_number, pp.pp_date, pp.total, b.branch_name, pp.pv_number, pp.pp_type 
         FROM payment_process AS pp
         INNER JOIN branch AS b ON pp.branch_id=b.branch_id
         WHERE pp.cash_request_id='.$cash_request_id;

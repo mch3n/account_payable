@@ -160,6 +160,7 @@ class Credit_invoice_model extends CI_Model {
             'po_status' => $this->inprogress
         );
         $this->db->insert('credit_invoice', $data);
+        $ci_id = $this->db->insert_id();
         /*== insert to log activity ==*/
         $this->load->model('log_activity_model');
         $log_desc = array(
@@ -177,6 +178,14 @@ class Credit_invoice_model extends CI_Model {
         );
         $this->log_activity_model->insert_log('Credit Invoice', 'Add', $log_desc);
         /*== end log ==*/
+        // update 2018-09-07 insert to supplier balance
+        $data_balance = array(
+            'balance_date'=>$po_date,
+            'supplier_id'=>$supplier_id,
+            'credit_invoice_id'=>$ci_id,
+            'debit'=>$amount
+        );
+        $this->db->insert('supplier_balance', $data_balance);
     }
 
     public function update_credit_invoice($id) {
@@ -226,6 +235,14 @@ class Credit_invoice_model extends CI_Model {
         );
         $this->log_activity_model->insert_log('Purchase Order Note', 'Edit', $log_desc);
         /*== end log ==*/
+        // update 2018-09-07 update to supplier balance
+        $data_balance = array(
+            'balance_date'=>$po_date,
+            'supplier_id'=>$supplier_id,
+            'debit'=>$amount
+        );
+        $this->db->where('credit_invoice_id', $id);
+        $this->db->update('supplier_balance', $data_balance);
     }
     
     public function update_file_name($id=0, $file='', $type='') {
@@ -256,5 +273,8 @@ class Credit_invoice_model extends CI_Model {
         
         $this->db->where('credit_invoice_id', $id);
         $this->db->delete('credit_invoice');
+        // update 2018-09-07 delete to supplier balance
+        $this->db->where('credit_invoice_id', $id);
+        $this->db->delete('supplier_balance');
     }
 }

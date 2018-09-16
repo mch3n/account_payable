@@ -179,7 +179,8 @@ if ($cash_request_detail->num_rows()!=0){
     
     <div class="box box-default">
         <div class="box-header with-border">
-            <a href="<?php echo site_url('paymentprocess/ppgeneral/20191231214301/0/'.$row->cash_request_id.'/0/') ?>" target="_blank" class="btn btn-primary btn-sm">Add PP (Nota Come)</a>
+            <a href="<?php echo site_url('paymentprocess/ppgeneral/20191231214301/0/'.$row->cash_request_id.'/0/') ?>" target="_blank" class="btn btn-success btn-sm">Add PP GN</a>
+            <a href="<?php echo site_url('paymentprocess/ppoutstanding/20191231214301/0/'.$row->cash_request_id.'/3/') ?>" target="_blank" class="btn btn-danger btn-sm">Add PP OS</a>
         </div>
         <div class="box-body">
             <?php
@@ -207,7 +208,7 @@ if ($cash_request_detail->num_rows()!=0){
                 $ppcode = $this->asik_model->category_configuration.$this->asik_model->config_01;
                 foreach ($pp_cash_request->result() as $value) {
                     $enc_id = $this->general_model->encrypt_value($value->pp_id);
-                    $detail = 'ppdetail/go/' . $ppcode.'/'.$enc_id.'/0/';
+                    $detail = 'ppdetail/go/' . $ppcode.'/'.$enc_id.'/'.$value->pp_type.'/';
                     echo '<tr>';
                     echo '<td><a  href="'. site_url($detail).'" target="_blank">'.$this->general_model->get_string_date($value->pp_date).'</a></td>';
                     echo '<td>'.$value->branch_name.'</td>';

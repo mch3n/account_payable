@@ -1,5 +1,8 @@
 <div class="col-xs-12">
     <div class="box">
+        <div class="box-header with-border">
+            <a href="<?php echo site_url('outstandingreport/go/20191341214304') ?>" class="btn btn-sm btn-success">Back to Outstanding Cash Request</a>
+        </div>
         <div class="box-body table-responsive">
             <table id="datatable2" class="table table-striped table-bordered">
                 <thead>

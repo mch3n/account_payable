@@ -44,7 +44,8 @@ class Asik_model extends CI_Model {
         ),
         array(
             '31214301' => ['paymentprocess','Payment Process'],
-            '31214302' => ['paymentvoucher','Payment Voucher']
+            '31214302' => ['paymentvoucher','Payment Voucher'],
+            '31214303' => ['projectdebit','Project Debit'],
         ),
         array(
             '41214301' => ['summaryreport','Summary'],
@@ -90,6 +91,7 @@ class Asik_model extends CI_Model {
     /*configuration*/            
     public $config_01 = '31214301';
     public $config_02 = '31214302';
+    public $config_03 = '31214303';
     /*report*/
     public $report_01 = '41214301';
     public $report_02 = '41214302';

@@ -67,7 +67,6 @@ class Thirdpartybalance extends CI_Controller {
         $sql = 'SELECT t.third_party_id, t.third_party_name, SUM(b.debit) AS sum_debit, 
         SUM(b.credit) AS sum_credit FROM third_party_balance AS b
         INNER JOIN third_party AS t ON t.third_party_id=b.third_party_id
-        INNER JOIN payment_process AS p ON p.pp_id=b.pp_id
         GROUP BY t.third_party_id
         ORDER BY t.third_party_name';
         $query = $this->db->query($sql);
@@ -75,11 +74,9 @@ class Thirdpartybalance extends CI_Controller {
     }
     
     public function get_balance_detail($third_party_id=0) {
-        $sql  = 'SELECT b.pp_id, b.balance_date, p.pp_number, p.pp_status, br.branch_name, 
-        b.debit, b.credit, b.third_party_id 
+        $sql  = 'SELECT b.balance_date, b.pp_id, b.outstanding_id, 
+        b.debit, b.credit, b.third_party_id, b.receive_bank_id  
         FROM third_party_balance AS b
-        INNER JOIN payment_process AS p ON p.pp_id=b.pp_id 
-        INNER JOIN branch AS br ON p.branch_id=br.branch_id 
         WHERE b.third_party_id='.$third_party_id.' 
         ORDER BY b.balance_date';
         $query = $this->db->query($sql);
@@ -111,6 +108,25 @@ class Thirdpartybalance extends CI_Controller {
                 
                 $data['detail'] = $this->get_balance_detail($third_party_id);
                 $third_party_name = $this->get_third_party_name($third_party_id);
+                
+                $detail = $this->get_balance_detail($third_party_id);
+                $in_pp = '';
+                $in_rb = '';
+                if ($detail->num_rows()!=0){
+                    foreach ($detail->result() as $value) {
+                        if ($value->pp_id != 0){
+                            $in_pp .= $value->pp_id . ',';
+                        } 
+                        if ($value->receive_bank_id != 0){
+                            $in_rb .= $value->receive_bank_id.',';
+                        }
+                    }
+                }
+                $in_pp_id = substr($in_pp, 0, strlen($in_pp)-1);
+                $in_rb_id = substr($in_rb, 0, strlen($in_rb)-1);
+                
+                $data['arr_pp_number'] = $this->get_arr_payment_process($in_pp_id);
+                $data['arr_rb_number'] = $this->get_arr_receive_bank($in_rb_id);
                 /* ===== start datatable ===== */
                 $data['datatable_title'] = 'Third Party Balance';
                 $footer_total = '"footerCallback": function ( row, data, start, end, display ) {
@@ -125,6 +141,28 @@ class Thirdpartybalance extends CI_Controller {
                     };
     
                     alltotal1 = api
+                                .column(3, { page: "current"})
+                                .data()
+                                .reduce( function (a, b) {
+                                        return intVal(a) + intVal(b);
+                                }, 0 );
+                        // Update footer
+                        $( api.column(3).footer() ).html(
+                                numeral(alltotal1).format("0,0.00")
+                        );
+                        
+                    alltotal2 = api
+                                .column(4, { page: "current"})
+                                .data()
+                                .reduce( function (a, b) {
+                                        return intVal(a) + intVal(b);
+                                }, 0 );
+                        // Update footer
+                        $( api.column(4).footer() ).html(
+                                numeral(alltotal2).format("0,0.00")
+                        );
+                    
+                    alltotal3 = api
                                 .column(5, { page: "current"})
                                 .data()
                                 .reduce( function (a, b) {
@@ -132,28 +170,6 @@ class Thirdpartybalance extends CI_Controller {
                                 }, 0 );
                         // Update footer
                         $( api.column(5).footer() ).html(
-                                numeral(alltotal1).format("0,0.00")
-                        );
-                        
-                    alltotal2 = api
-                                .column(6, { page: "current"})
-                                .data()
-                                .reduce( function (a, b) {
-                                        return intVal(a) + intVal(b);
-                                }, 0 );
-                        // Update footer
-                        $( api.column(6).footer() ).html(
-                                numeral(alltotal2).format("0,0.00")
-                        );
-                    
-                    alltotal3 = api
-                                .column(7, { page: "current"})
-                                .data()
-                                .reduce( function (a, b) {
-                                        return intVal(a) + intVal(b);
-                                }, 0 );
-                        // Update footer
-                        $( api.column(7).footer() ).html(
                                 numeral(alltotal3).format("0,0.00")
                         );
                 }';
@@ -170,6 +186,54 @@ class Thirdpartybalance extends CI_Controller {
         } else {
             show_404();
         }
+    }
+    
+    public function get_arr_payment_process($in='') {
+        $arr = array();
+        if ($in != ''){
+            $sql  = 'SELECT pp_id, pp_number FROM payment_process ';
+            $sql .= 'WHERE pp_id IN('.$in.')';
+            $query = $this->db->query($sql);
+            if ($query->num_rows() != 0){
+                foreach ($query->result() as $value) {
+                    $arr[$value->pp_id] = $value->pp_number;
+                }
+            }
+        }
+        
+        return $arr;
+    }
+    
+    public function get_arr_receive_bank($in='') {
+        $arr = array();
+        if ($in != ''){
+            $sql  = 'SELECT receive_bank_id, receive_bank_number FROM receive_bank ';
+            $sql .= 'WHERE receive_bank_id IN('.$in.')';
+            $query = $this->db->query($sql);
+            if ($query->num_rows() != 0){
+                foreach ($query->result() as $value) {
+                    $arr[$value->receive_bank_id] = $value->receive_bank_number;
+                }
+            }
+        }
+        
+        return $arr;
+    }
+    
+    public function get_arr_receive_bank_id($in='') {
+        $arr = array();
+        if ($in != ''){
+            $sql  = 'SELECT outstanding_id, receive_bank_id FROM receive_bank ';
+            $sql .= 'WHERE outstanding_id IN('.$in.')';
+            $query = $this->db->query($sql);
+            if ($query->num_rows() != 0){
+                foreach ($query->result() as $value) {
+                    $arr[$value->outstanding_id] = $value->receive_bank_id;
+                }
+            }
+        }
+        
+        return $arr;
     }
     
 }

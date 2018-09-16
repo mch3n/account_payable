@@ -67,7 +67,6 @@ class Projectbalance extends CI_Controller {
         $sql = 'SELECT v.vendor_id, v.vendor_name, SUM(pb.debit) AS sum_debit, 
         SUM(pb.credit) AS sum_credit FROM project_balance AS pb
         INNER JOIN vendor AS v ON v.vendor_id=pb.vendor_id
-        INNER JOIN payment_process AS p ON p.pp_id=pb.pp_id
         GROUP BY v.vendor_id
         ORDER BY v.vendor_name';
         $query = $this->db->query($sql);
@@ -75,11 +74,9 @@ class Projectbalance extends CI_Controller {
     }
     
     public function get_balance_detail($vendor_id=0) {
-        $sql  = 'SELECT pb.pp_id, pb.balance_date, p.pp_number, p.pp_status, br.branch_name, 
+        $sql  = 'SELECT pb.pp_id, pb.balance_date,  
         pb.debit, pb.credit, pb.vendor_id 
         FROM project_balance AS pb
-        INNER JOIN payment_process AS p ON p.pp_id=pb.pp_id 
-        INNER JOIN branch AS br ON p.branch_id=br.branch_id 
         WHERE pb.vendor_id='.$vendor_id.' 
         ORDER BY pb.balance_date';
         $query = $this->db->query($sql);
@@ -110,7 +107,21 @@ class Projectbalance extends CI_Controller {
                 $data['pagecode'] = $string;
                 
                 $data['detail'] = $this->get_balance_detail($vendor_id);
+                $detail = $this->get_balance_detail($vendor_id);
                 $vendor_name = $this->get_vendor_name($vendor_id);
+                
+                $pp_in = '';
+                if ($detail->num_rows()!=0){
+                    $ppids = '';
+                    foreach ($detail->result() as $value) {
+                        if ($value->pp_id != 0){
+                            $ppids .= $value->pp_id . ',';
+                        }                        
+                    }
+                    $pp_in = substr($ppids, 0, strlen($ppids)-1);
+                }
+                $data['arr_number'] = $this->get_pp_number($pp_in);
+                $data['arr_status'] = $this->get_pp_status($pp_in);
                 /* ===== start datatable ===== */
                 $data['datatable_title'] = 'Supplier Balance';
                 $footer_total = '"footerCallback": function ( row, data, start, end, display ) {
@@ -125,6 +136,17 @@ class Projectbalance extends CI_Controller {
                     };
     
                     alltotal1 = api
+                                .column(4, { page: "current"})
+                                .data()
+                                .reduce( function (a, b) {
+                                        return intVal(a) + intVal(b);
+                                }, 0 );
+                        // Update footer
+                        $( api.column(4).footer() ).html(
+                                numeral(alltotal1).format("0,0.00")
+                        );
+                        
+                    alltotal2 = api
                                 .column(5, { page: "current"})
                                 .data()
                                 .reduce( function (a, b) {
@@ -132,10 +154,10 @@ class Projectbalance extends CI_Controller {
                                 }, 0 );
                         // Update footer
                         $( api.column(5).footer() ).html(
-                                numeral(alltotal1).format("0,0.00")
+                                numeral(alltotal2).format("0,0.00")
                         );
-                        
-                    alltotal2 = api
+                    
+                    alltotal3 = api
                                 .column(6, { page: "current"})
                                 .data()
                                 .reduce( function (a, b) {
@@ -143,17 +165,6 @@ class Projectbalance extends CI_Controller {
                                 }, 0 );
                         // Update footer
                         $( api.column(6).footer() ).html(
-                                numeral(alltotal2).format("0,0.00")
-                        );
-                    
-                    alltotal3 = api
-                                .column(7, { page: "current"})
-                                .data()
-                                .reduce( function (a, b) {
-                                        return intVal(a) + intVal(b);
-                                }, 0 );
-                        // Update footer
-                        $( api.column(7).footer() ).html(
                                 numeral(alltotal3).format("0,0.00")
                         );
                 }';
@@ -170,6 +181,30 @@ class Projectbalance extends CI_Controller {
         } else {
             show_404();
         }
+    }
+    
+    public function get_pp_number($in='') {
+        $sql = 'SELECT pp_id, pp_number FROM payment_process WHERE pp_id IN('.$in.')';
+        $query = $this->db->query($sql);
+        $arr = array();
+        if ($query->num_rows()!=0){
+            foreach ($query->result() as $value) {
+                $arr[$value->pp_id] = $value->pp_number;
+            }
+        }
+        return $arr;
+    }
+    
+    public function get_pp_status($in='') {
+        $sql = 'SELECT pp_id, pp_status FROM payment_process WHERE pp_id IN('.$in.')';
+        $query = $this->db->query($sql);
+        $arr = array();
+        if ($query->num_rows()!=0){
+            foreach ($query->result() as $value) {
+                $arr[$value->pp_id] = $value->pp_status;
+            }
+        }
+        return $arr;
     }
     
 }

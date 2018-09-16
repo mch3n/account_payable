@@ -110,6 +110,7 @@ class Ppdetail extends CI_Controller {
                     $data['encrypt_id'] = $this->general_model->draw_hidden_field('encrypt_id', $encrypt_id);
                     $data['credit_invoice'] = $this->ppdetail_model->get_invoice_list($supplier_id, $branch_id);
                     $data['show_modal'] = 'ppdetail/ppsupplier_modal.php';
+                    $data['is_cinvoice_file'] = 0;
                     if ($detail->num_rows()!=0){
                         $clause_in = '';
                         foreach ($detail->result() as $value) {
@@ -117,6 +118,7 @@ class Ppdetail extends CI_Controller {
                         }
                         $clausein = substr($clause_in, 0, strlen($clause_in)-1);
                         $data['cinvoice_file'] = $this->ppdetail_model->get_credit_invoice_file($clausein);
+                        $data['is_cinvoice_file'] = 1;
                     }
                 }
                 /*  ======= PP Cashier Expense ======= */
@@ -130,6 +132,23 @@ class Ppdetail extends CI_Controller {
                 if ($pp_type == 3){
                     $title = 'PP Outstanding';
                     $data['pp_info'] = $this->ppdetail_model->get_payment_process($pp_id);
+                    $pp_info = $this->ppdetail_model->get_payment_process($pp_id);
+                    $third_party_id = 0;
+                    if ($pp_info->num_rows()!=0){
+                        $row = $pp_info->row();
+                        $third_party_id = $row->third_party_id;
+                    }
+                    $this->load->model('thirdparty_model');
+                    $thirdparty = $this->thirdparty_model->get_third_party_list();
+                    $thirdparty_opt = array();
+                    if ($thirdparty->num_rows()!=0){
+                        $thirdparty_opt[0] = 'None';
+                        foreach ($thirdparty->result() as $value) {
+                            $thirdparty_opt[$value->third_party_id] = $value->third_party_name;
+                        }
+                    }
+                    $data['third_party_id'] = $this->general_model->draw_select('Select Third Party', 0, 'third_party_id', 1, $thirdparty_opt, $third_party_id, 1);
+                    
                     $halaman = 'ppdetail/ppoutstanding_detail.php';
                     $data['show_modal'] = 'ppdetail/ppoutstanding_modal.php';
                 }
@@ -432,41 +451,41 @@ class Ppdetail extends CI_Controller {
         $this->db->where('pp_id', $pp_id);
         $this->db->update('payment_process', $data);
         // insert to balance
-        $arr_pp = $this->get_payment_process_by_id($pp_id);
-        switch ($pp_type) {
-            case 1: // supplier balance
-                // insert
-                $datainsert = array(
-                    'balance_date' => $arr_pp[1],
-                    'supplier_id' => $arr_pp[2],
-                    'pp_id' => $arr_pp[0],
-                    'debit' => $arr_pp[3]
-                );
-                $this->db->insert('supplier_balance', $datainsert);
-                break;
-
-            case 3: // third party balance
-                // insert
-                $datainsert = array(
-                    'balance_date' => $arr_pp[1],
-                    'third_party_id' => $arr_pp[5],
-                    'pp_id' => $arr_pp[0],
-                    'debit' => $arr_pp[3]
-                );
-                $this->db->insert('third_party_balance', $datainsert);
-                break;
-            
-            case 4: // project balance
-                // insert
-                $datainsert = array(
-                    'balance_date' => $arr_pp[1],
-                    'vendor_id' => $arr_pp[4],
-                    'pp_id' => $arr_pp[0],
-                    'debit' => $arr_pp[3]
-                );
-                $this->db->insert('project_balance', $datainsert);
-                break;
-        }
+//        $arr_pp = $this->get_payment_process_by_id($pp_id);
+//        switch ($pp_type) {
+//            case 1: // supplier balance
+//                // insert
+//                $datainsert = array(
+//                    'balance_date' => $arr_pp[1],
+//                    'supplier_id' => $arr_pp[2],
+//                    'pp_id' => $arr_pp[0],
+//                    'debit' => $arr_pp[3]
+//                );
+//                $this->db->insert('supplier_balance', $datainsert);
+//                break;
+//
+//            case 3: // third party balance
+//                // insert
+//                $datainsert = array(
+//                    'balance_date' => $arr_pp[1],
+//                    'third_party_id' => $arr_pp[5],
+//                    'pp_id' => $arr_pp[0],
+//                    'debit' => $arr_pp[3]
+//                );
+//                $this->db->insert('third_party_balance', $datainsert);
+//                break;
+//            
+//            case 4: // project balance
+//                // insert
+//                $datainsert = array(
+//                    'balance_date' => $arr_pp[1],
+//                    'vendor_id' => $arr_pp[4],
+//                    'pp_id' => $arr_pp[0],
+//                    'debit' => $arr_pp[3]
+//                );
+//                $this->db->insert('project_balance', $datainsert);
+//                break;
+//        }
         $back = '/ppdetail/go/' . $this->asik_model->category_configuration;
         $back .= $this->asik_model->config_01 . '/'.$encrypt_id.'/'.$pp_type;
         redirect($back);
@@ -546,5 +565,63 @@ class Ppdetail extends CI_Controller {
             $arr[5] = $row->third_party_id;
         }
         return $arr;
+    }
+    
+    public function ppoutstanding_update_third_party_id() {
+        $pp_id = $this->input->post('pp_id');
+        $third_party_id = $this->input->post('third_party_id');
+        
+        // update payment process
+        $data = array(
+            'third_party_id' => $third_party_id
+        );
+        $this->db->where('pp_id', $pp_id);
+        $this->db->update('payment_process', $data);
+        
+        // cek third party balance by pp_id
+        $third_balance = $this->get_third_party_balance_by_id($pp_id);
+        if ($third_balance->num_rows()!=0){
+            // update third_party_balance
+            $data_third_party = array(
+                'third_party_id' => $third_party_id
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('third_party_balance', $data_third_party);   
+        } else {
+            $arrpp = $this->get_payment_process_by_id($pp_id);
+            $data_third_party = array(
+                'balance_date' => $arrpp[1],
+                'third_party_id' => $third_party_id,
+                'pp_id' => $pp_id,
+                'outstanding_id' => 0,
+                'debit' => $arrpp[3],
+                'credit' => 0
+            );
+            $this->db->insert('third_party_balance', $data_third_party);
+        }
+        
+        // cek outstanding
+        $os_data = $this->get_outstanding($pp_id);
+        if ($os_data->num_rows()!=0){
+            $data_os = array('third_party_id'=>$third_party_id);
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('outstanding', $data_os);  
+        }
+        $encrypt_id = $this->input->post('pp_encrypt');
+        $link = '/ppdetail/go/' . $this->asik_model->category_configuration;
+        $link .= $this->asik_model->config_01 . '/'.$encrypt_id.'/3';
+        redirect($link);
+    }
+    
+    public function get_third_party_balance_by_id($pp_id=0) {
+        $sql = 'SELECT * FROM third_party_balance WHERE pp_id='.$pp_id;
+        $query = $this->db->query($sql);
+        return $query;
+    }
+    
+    public function get_outstanding($pp_id=0) {
+        $sql = 'SELECT * FROM outstanding WHERE pp_id='.$pp_id;
+        $query = $this->db->query($sql);
+        return $query;
     }
 }

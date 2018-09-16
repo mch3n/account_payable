@@ -134,6 +134,22 @@
                         </tr>
                     </tfoot>
                 </table>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Checked</th>
+                            <th>Approved</th>
+                            <th>Upload</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?= $report_os_cash_request[0] ?></td>
+                            <td><?= $report_os_cash_request[1] ?></td>
+                            <td><?= $report_os_cash_request[2] ?></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -286,6 +302,22 @@
                         </tr>
                     </tfoot>
                 </table>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Checked</th>
+                            <th>Approved</th>
+                            <th>Upload</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?= $report_os_outlet[0] ?></td>
+                            <td><?= $report_os_outlet[1] ?></td>
+                            <td><?= $report_os_outlet[2] ?></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -413,6 +445,22 @@
                             <th class="text-right"><?php echo number_format($total2, 2) ?></th>
                         </tr>
                     </tfoot>
+                </table>
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Checked</th>
+                            <th>Approved</th>
+                            <th>Upload</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><?= $report_os_third_party[0] ?></td>
+                            <td><?= $report_os_third_party[1] ?></td>
+                            <td><?= $report_os_third_party[2] ?></td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>

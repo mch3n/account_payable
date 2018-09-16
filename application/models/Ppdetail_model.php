@@ -127,6 +127,19 @@ class Ppdetail_model extends CI_Model {
 
                 $this->db->where('pp_id', $row->pp_id);
                 $this->db->update('payment_process', $datapp);
+                
+                // update third_party_balance
+                $data_third_party = array(
+                    'debit' => $totalall
+                );
+                $this->db->where('pp_id', $row->pp_id);
+                $this->db->update('third_party_balance', $data_third_party); 
+                // update project_balance 13 Sep 2018
+                $project_balance = array(
+                    'credit' => $totalall
+                );
+                $this->db->where('pp_id', $row->pp_id);
+                $this->db->update('project_balance', $project_balance);  
             } else {
                 $datapp = array(
                     'total' => 0,
@@ -135,6 +148,18 @@ class Ppdetail_model extends CI_Model {
 
                 $this->db->where('pp_id', $row->pp_id);
                 $this->db->update('payment_process', $datapp);
+                // update third_party_balance
+                $data_third_party = array(
+                    'debit' => 0
+                );
+                $this->db->where('pp_id', $row->pp_id);
+                $this->db->update('third_party_balance', $data_third_party); 
+                // update project_balance 13 Sep 2018
+                $project_balance = array(
+                    'credit' => 0
+                );
+                $this->db->where('pp_id', $row->pp_id);
+                $this->db->update('project_balance', $project_balance);  
             }
         }
     }
@@ -339,6 +364,12 @@ class Ppdetail_model extends CI_Model {
 
             $this->db->where('pp_id', $pp_id);
             $this->db->update('payment_process', $datapp);
+            // update 2018-09-07 update to supplier balance
+            $data_balance = array(
+                'credit'=>$total
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('supplier_balance', $data_balance);
         }
     }
     
@@ -524,6 +555,12 @@ class Ppdetail_model extends CI_Model {
 
             $this->db->where('pp_id', $pp_id);
             $this->db->update('payment_process', $datapp);
+            // update third_party_balance
+            $data_third_party = array(
+                'debit' => $totalall
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('third_party_balance', $data_third_party);            
         }
     }
     
@@ -585,6 +622,13 @@ class Ppdetail_model extends CI_Model {
 
             $this->db->where('pp_id', $pp_id);
             $this->db->update('payment_process', $datapp);
+            
+            // update third_party_balance
+            $data_third_party = array(
+                'debit' => $totalall
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('third_party_balance', $data_third_party);
         }
     }
     
@@ -647,6 +691,12 @@ class Ppdetail_model extends CI_Model {
 
             $this->db->where('pp_id', $pp_id);
             $this->db->update('payment_process', $datapp);
+            // update project_balance 13 Sep 2018
+            $project_balance = array(
+                'credit' => $totalall
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('project_balance', $project_balance);  
         }
     }
     
@@ -708,6 +758,12 @@ class Ppdetail_model extends CI_Model {
 
             $this->db->where('pp_id', $pp_id);
             $this->db->update('payment_process', $datapp);
+            // update project_balance 13 Sep 2018
+            $project_balance = array(
+                'credit' => $totalall
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('project_balance', $project_balance);  
         }
     }
     

@@ -150,7 +150,8 @@ class Summaryreport extends CI_Controller {
                     $adjustment = $this->get_adjustment($start_date, $end_date);
                 }
                 /* update 27 June 2018 | get previous balance */
-                $prev_balance = $this->get_previousbalance($start_date, $end_date);
+                //$prev_balance = $this->get_previousbalance($start_date, $end_date);
+                $prev_balance = $this->get_bank_balance($start_date);
                 $data['prev_balance'] = $prev_balance;
                 // update 14 June 2018
                 // cek report file by start_date, end_date
@@ -208,7 +209,7 @@ class Summaryreport extends CI_Controller {
                     
                     $k = 1;
                     foreach ($prev_balance as $value) {
-                        if ($k == sizeof($prev_balance)){
+                        if ($k == sizeof($prev_balance)+1){
                             $array_tbl[0][$k] = $value;
                         } else {
                             $array_tbl[0][$k] = number_format($value);
@@ -1156,5 +1157,28 @@ class Summaryreport extends CI_Controller {
 
         return $previous;
     }
+    
+    public function get_bank_balance($startdate='') {
+        $previous = array();
+        $end_date = date('Y-m-d', strtotime('-1 day', strtotime($startdate)));
+        
+        $sql = 'SELECT b.branch_id, a.account_id, b.branch_name, SUM(L.debit) AS total_debit, SUM(L.credit) AS total_credit
+        FROM ledger AS L INNER JOIN transactions AS t ON L.trans_id=t.trans_id 
+        INNER JOIN account AS a ON L.account_id=a.account_id 
+        INNER JOIN branch AS b ON b.branch_id=a.branch_id 
+        WHERE L.account_id IN (7,8,9,10,11,12,13) AND t.trans_date BETWEEN "2018-02-01" AND "'.$end_date.'" ';
+        $sql .= 'GROUP BY b.branch_id, a.account_id';
+        
+        $query = $this->db->query($sql);
+        if ($query->num_rows()!=0){
+            foreach ($query->result() as $value) {
+                $total = $value->total_debit - $value->total_credit;
+                $previous[] = $total;
+            }
+        }
+        return $previous;
+    }
+    
+    
 
 }

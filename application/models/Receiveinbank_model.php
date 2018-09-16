@@ -73,10 +73,25 @@ class Receiveinbank_model extends CI_Model {
             'receive_type' => $receive_type
         );
         $this->db->insert('receive_bank', $data);
+        $receive_bank_id = $this->db->insert_id();
         // update outstanding status
-        $dataos = array('outstanding_status'=>1);
-        $this->db->where('outstanding_id', $outstanding_id);
-        $this->db->update('outstanding', $dataos);
+        if ($outstanding_id !=0){
+            $dataos = array('outstanding_status'=>1);
+            $this->db->where('outstanding_id', $outstanding_id);
+            $this->db->update('outstanding', $dataos);
+            // update third_party_balance 2018-09-11
+            $third_party_id = $this->get_third_party_id($outstanding_id);
+            $data_third_party = array(
+                'balance_date' => $receive_bank_date,
+                'third_party_id' => $third_party_id,
+                'pp_id' => 0,
+                'outstanding_id' => $outstanding_id,
+                'receive_bank_id' => $receive_bank_id,
+                'debit' => 0,
+                'credit' => $amount
+            );
+            $this->db->insert('third_party_balance', $data_third_party);
+        }
     }
     
     public function update_receive_bank() {
@@ -219,5 +234,16 @@ class Receiveinbank_model extends CI_Model {
         );
 
         $this->db->insert('cash_request_balance', $data);
+    }
+    
+    public function get_third_party_id($outstanding_id=0) {
+        $sql ='SELECT third_party_id FROM outstanding WHERE outstanding_id='.$outstanding_id;
+        $query = $this->db->query($sql);
+        $third_party_id = 0;
+        if ($query->num_rows()!=0){
+            $row = $query->row();
+            $third_party_id = $row->third_party_id;
+        }
+        return $third_party_id;
     }
 }
