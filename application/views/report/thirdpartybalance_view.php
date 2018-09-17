@@ -6,9 +6,9 @@
                     <tr>
                         <th>#</th>
                         <th>Third Party</th>
-                        <th>Debit (Total)</th>
-                        <th>Credit (Total)</th>
-                        <th>Balance</th>
+                        <th class="text-right">Debit (Total)</th>
+                        <th class="text-right">Credit (Total)</th>
+                        <th class="text-right">Balance</th>
                     </tr>
                 </thead>
                 <?php
@@ -32,9 +32,9 @@
                     <tr>
                         <th>#</th>
                         <th>Third Party</th>
-                        <th>Debit (Total)</th>
-                        <th>Credit (Total)</th>
-                        <th>Balance</th>
+                        <th class="text-right">Debit (Total)</th>
+                        <th class="text-right">Credit (Total)</th>
+                        <th class="text-right">Balance</th>
                     </tr>
                 </tfoot>
             </table>

@@ -20,8 +20,9 @@ class Project_debit_model extends CI_Model {
         );
 
     public function get_project_debit_list($start_date='', $end_date='', $field_search='', $keyword=''){
-        $sql  = 'SELECT p.*, v.vendor_name FROM project_debit AS p ';
+        $sql  = 'SELECT p.*, v.vendor_name, b.branch_name FROM project_debit AS p ';
         $sql .= 'INNER JOIN vendor AS v ON p.vendor_id=v.vendor_id ';
+        $sql .= 'INNER JOIN branch AS b ON p.branch_id=b.branch_id ';
         $sql .= 'WHERE  ';
         if ($start_date != '' && $end_date != ''){
             $sql .= ' p.project_date BETWEEN "'.$start_date.'" AND "'.$end_date.'" ';
@@ -40,8 +41,9 @@ class Project_debit_model extends CI_Model {
     }
     
     public function get_project_debit_by_id($id=0) {
-        $sql  = 'SELECT p.*, v.vendor_name FROM project_debit AS p ';
+        $sql  = 'SELECT p.*, v.vendor_name, b.branch_name FROM project_debit AS p ';
         $sql .= 'INNER JOIN vendor AS v ON p.vendor_id=v.vendor_id ';
+        $sql .= 'INNER JOIN branch AS b ON p.branch_id=b.branch_id ';
         $sql .= 'WHERE p.project_debit_id='.$id;
         $query = $this->db->query($sql);
         return $query;
@@ -60,6 +62,7 @@ class Project_debit_model extends CI_Model {
         $project_title = $this->input->post('project_title');
         $vendor_id = $this->input->post('vendor_id');
         $amount = $this->general_model->change_decimal($this->input->post('amount'));
+        $branch_id = $this->input->post('branch_id');
         $data = array(
             'project_number' => $project_number,
             'project_date' => $project_date,
@@ -69,7 +72,8 @@ class Project_debit_model extends CI_Model {
             'checked_by' => 0,
             'approved_by' => 0,
             'file_name' => '0',
-            'project_status' => 0
+            'project_status' => 0,
+            'branch_id' => $branch_id
         );
         $this->db->insert('project_debit', $data);
     }
@@ -80,11 +84,13 @@ class Project_debit_model extends CI_Model {
         $project_title = $this->input->post('project_title');
         $vendor_id = $this->input->post('vendor_id');
         $amount = $this->general_model->change_decimal($this->input->post('amount'));
+        $branch_id = $this->input->post('branch_id');
         $data = array(
             'project_date' => $project_date,
             'project_title' => $project_title,
             'vendor_id' => $vendor_id,
-            'amount' => $amount
+            'amount' => $amount,
+            'branch_id' => $branch_id
         );
         $this->db->where('project_debit_id', $project_debit_id);
         $this->db->update('project_debit', $data);

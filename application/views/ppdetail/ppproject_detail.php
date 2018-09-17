@@ -40,6 +40,16 @@ if ($pp_info->num_rows()!=0){
                     ?>
                 </div>
                 <h4><?php echo $row->pp_title ?></h4>
+                <div class="form-body">
+                    <?php
+                        echo form_open('ppdetail/pp_project_update_project_debit_id');
+                        echo '<input type="hidden" name="pp_encrypt" value="'.$up_encrypt_id.'">';
+                        echo '<input type="hidden" name="pp_id" value="'.$data_pp_id.'">';
+                        echo $project_debit_id;
+                        echo '<input type="submit" class="btn btn-success btn-sm" value="Save Change">';
+                        echo form_close();  
+                    ?>
+                </div>
             </div>
         </div>
         <div class="box-body table-responsive">
@@ -55,11 +65,13 @@ if ($pp_info->num_rows()!=0){
                         echo '<input type="hidden" name="pp_encrypt" value="'.$up_encrypt_id.'">';
                         echo '<input type="hidden" name="pp_detail_id" value="">';
                         echo '<input type="hidden" name="pp_id" value="'.$data_pp_id.'">';
+                        echo '<tr>';
+                        echo '<th colspan="7"><textarea name="description" class="form-control" rows="3" placeholder="type description here..."></textarea></th>';
+                        echo '</tr>';
                         echo '<tr>
                             <th>#</th>
                             <th><input class="form-control input-sm" type="text" placeholder="Auto" disabled></th>
                             <th><input name="job_order" class="form-control input-sm" type="text" placeholder="Ref. No."></th>
-                            <th><input name="description" class="form-control input-sm" type="text" placeholder="Description.."></th>
                             <th><input name="unit" class="form-control input-sm numberic" type="text" placeholder="Unit"></th>
                             <th><input name="price" class="form-control input-sm currency" type="text" placeholder="Price"></th>
                             <th><input class="form-control input-sm" type="text" placeholder="Auto" disabled></th>

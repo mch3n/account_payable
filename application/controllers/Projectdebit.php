@@ -71,6 +71,16 @@ class Projectdebit extends CI_Controller {
                     }
                 }
 
+                $this->load->model('branch_model');
+                $branch_data = $this->branch_model->get_branch_list();
+                $branch_opt = array();
+                if ($branch_data->num_rows()!=0){
+                    $branch_opt[0] = 'None';
+                    foreach ($branch_data->result() as $value) {
+                        $branch_opt[$value->branch_id] = $value->branch_name;
+                    }
+                }
+
                 $pd_number = $this->general_model->get_generate_number('PD', 'project_debit', 'project_debit_id');
                 $data['project_debit_id'] = $this->general_model->draw_hidden_field('project_debit_id', '');
                 $data['project_number_disabled'] = $this->general_model->draw_text_disabled('Project Number', 'project_number_disabled', $pd_number);
@@ -79,6 +89,7 @@ class Projectdebit extends CI_Controller {
                 $data['project_title'] = $this->general_model->draw_text_field('Title', 1, 'project_title', '', '', '');
                 $data['vendor_id'] = $this->general_model->draw_select('Vendor', 0, 'vendor_id', 1, $vendor_opt, '');
                 $data['amount'] = $this->general_model->draw_input_currency('Amount', 0, 'amount', '');
+                $data['branch_id'] = $this->general_model->draw_select('Outlet', 0, 'branch_id', 1, $branch_opt, '');
                                 
                 /* end form */
     
@@ -146,20 +157,20 @@ class Projectdebit extends CI_Controller {
                     };
                     // Total over all pages
                     total = api
-                            .column(4)
+                            .column(6)
                             .data()
                             .reduce( function (a, b) {
                                     return intVal(a) + intVal(b);
                             }, 0 );
                     // Total over this page
                     pageTotal = api
-                            .column(4, { page: "current"})
+                            .column(6, { page: "current"})
                             .data()
                             .reduce( function (a, b) {
                                     return intVal(a) + intVal(b);
                             }, 0 );
                     // Update footer
-                    $( api.column(4).footer() ).html(
+                    $( api.column(6).footer() ).html(
                             numeral(pageTotal).format("0,0.00")
                     );
                 }';

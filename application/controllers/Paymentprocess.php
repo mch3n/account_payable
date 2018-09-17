@@ -204,8 +204,17 @@ class Paymentprocess extends CI_Controller {
                         $vendor_opt[$value->vendor_id] = $value->vendor_name;
                     }
                 }
+                $project_list = $this->get_project_debit_list();
+                $project_opt = array();
+                if ($project_list->num_rows()!=0){
+                    $project_opt[0] = 'None';
+                    foreach($project_list->result() as $value){
+                        $project_opt[$value->project_debit_id] = $value->project_number.' - '.$value->project_title;
+                    }
+                }
                 //$ven_ket = 'Create new vendor name..';
                 $data['vendor_id'] = $this->general_model->draw_select('Vendor', 0, 'vendor_id', 1, $vendor_opt, '', 1);
+                $data['project_debit_id'] = $this->general_model->draw_select('Project title', 0, 'project_debit_id', 1, $project_opt, '', 1);
                 //$data['vendor_name'] = $this->general_model->draw_text_field('New Vendor', 0, 'vendor_name', '', $ven_ket, '');
                 
                 $data['show_modal'] = 'paymentprocess/pp_modal.php';
@@ -812,5 +821,11 @@ class Paymentprocess extends CI_Controller {
         } else {
             show_404();
         }
+    }
+
+    public function get_project_debit_list() {
+        $sql  = 'SELECT project_debit_id, project_number, project_title FROM project_debit ';
+        $query = $this->db->query($sql);
+        return $query;
     }
 }

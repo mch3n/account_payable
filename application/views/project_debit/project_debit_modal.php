@@ -37,6 +37,7 @@
                 $('[name="project_date"]').val(data.project_date);
                 $('[name="project_title"]').val(data.project_title);
                 $('[name="vendor_id"]').val(data.vendor_id);
+                $('[name="branch_id"]').val(data.branch_id);
                 $('[name="amount"]').val(data.amount);
                 $('#modal_form').modal('show'); // show bootstrap modal when complete loaded
                 $('.modal-title').text('Edit Project Debit'); // Set title to Bootstrap modal title
@@ -124,6 +125,7 @@
                         echo $project_date;
                         echo $project_title;
                         echo $vendor_id;
+                        echo $branch_id;
                         echo $amount;
                         ?>
 

@@ -595,7 +595,8 @@
                         echo $pp_number_disabled;
                         echo $pp_number;
                         echo $pp_date;
-                        echo $vendor_id;
+                        //echo $vendor_id;
+                        echo $project_debit_id;
                         //echo $vendor_name;
                         echo $pp_title;
                         echo $branch_id;

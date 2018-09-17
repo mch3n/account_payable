@@ -138,6 +138,7 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         $cash_request_id = 0;
         $third_party_id = 0;
         $vendor_id = 0;
+        $project_debit_id = 0;
         
         // for detail pp (2018-03-13)
         $job_order = $this->input->post('job_order');
@@ -204,7 +205,8 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
                 $supplier_id = 0;
                 $branch_id = $this->input->post('branch_id');
                 $supplier_type = 0;
-                $vendor_id = $this->input->post('vendor_id');
+                $project_debit_id = $this->input->post('project_debit_id');
+                $vendor_id = $this->get_vendor_project_debit_by_id($project_debit_id);
                 break;
         }
         
@@ -227,6 +229,7 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
             'cash_request_id' => $cash_request_id,
             'third_party_id' => $third_party_id,
             'vendor_id' => $vendor_id,
+            'project_debit_id' => $project_debit_id,
             'username' => $this->session->userdata('username')
         );
         $this->db->insert('payment_process', $data);
@@ -280,6 +283,8 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         $payment_mode = $this->input->post('payment_mode');
         $supplier_id = 0;
         $cash_request_id = 0;
+        $project_debit_id = 0;
+        $vendor_id = 0;
         switch ($pp_type) {
             case 0:
                 $pp_title = $this->input->post('pp_title');
@@ -315,6 +320,8 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
             case 4:
                 $pp_title = $this->input->post('pp_title');
                 $branch_id = $this->input->post('branch_id');
+                $project_debit_id = $this->input->post('project_debit_id');
+                $vendor_id = $this->get_vendor_project_debit_by_id($project_debit_id);
                 break;
         }
         
@@ -327,6 +334,8 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
             'supplier_id' => $supplier_id,
             'branch_id' => $branch_id,
             'cash_request_id' => $cash_request_id,
+            'vendor_id' => $vendor_id,
+            'project_debit_id' => $project_debit_id,
             'username' => $this->session->userdata('username')
         );
 
@@ -608,5 +617,19 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         $this->db->insert('third_party_balance', $data_third_party);
         
         return $pp_id;
+    }
+
+    public function get_vendor_project_debit_by_id($id=0) {
+        $vendor_id = 0;
+        $sql  = 'SELECT p.*, v.vendor_name, b.branch_name FROM project_debit AS p ';
+        $sql .= 'INNER JOIN vendor AS v ON p.vendor_id=v.vendor_id ';
+        $sql .= 'INNER JOIN branch AS b ON p.branch_id=b.branch_id ';
+        $sql .= 'WHERE p.project_debit_id='.$id;
+        $query = $this->db->query($sql);
+        if ($query->num_rows()!=0){
+            $row = $query->row();
+            $vendor_id = $row->vendor_id;
+        }
+        return $vendor_id;
     }
 }

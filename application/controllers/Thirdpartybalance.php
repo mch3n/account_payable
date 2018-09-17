@@ -127,6 +127,8 @@ class Thirdpartybalance extends CI_Controller {
                 
                 $data['arr_pp_number'] = $this->get_arr_payment_process($in_pp_id);
                 $data['arr_rb_number'] = $this->get_arr_receive_bank($in_rb_id);
+                $data['arr_pp_branch'] = $this->get_arr_pp_branch($in_pp_id);
+                $data['arr_rb_branch'] = $this->get_arr_rb_branch($in_rb_id);
                 /* ===== start datatable ===== */
                 $data['datatable_title'] = 'Third Party Balance';
                 $footer_total = '"footerCallback": function ( row, data, start, end, display ) {
@@ -141,17 +143,6 @@ class Thirdpartybalance extends CI_Controller {
                     };
     
                     alltotal1 = api
-                                .column(3, { page: "current"})
-                                .data()
-                                .reduce( function (a, b) {
-                                        return intVal(a) + intVal(b);
-                                }, 0 );
-                        // Update footer
-                        $( api.column(3).footer() ).html(
-                                numeral(alltotal1).format("0,0.00")
-                        );
-                        
-                    alltotal2 = api
                                 .column(4, { page: "current"})
                                 .data()
                                 .reduce( function (a, b) {
@@ -159,10 +150,10 @@ class Thirdpartybalance extends CI_Controller {
                                 }, 0 );
                         // Update footer
                         $( api.column(4).footer() ).html(
-                                numeral(alltotal2).format("0,0.00")
+                                numeral(alltotal1).format("0,0.00")
                         );
-                    
-                    alltotal3 = api
+                        
+                    alltotal2 = api
                                 .column(5, { page: "current"})
                                 .data()
                                 .reduce( function (a, b) {
@@ -170,6 +161,17 @@ class Thirdpartybalance extends CI_Controller {
                                 }, 0 );
                         // Update footer
                         $( api.column(5).footer() ).html(
+                                numeral(alltotal2).format("0,0.00")
+                        );
+                    
+                    alltotal3 = api
+                                .column(6, { page: "current"})
+                                .data()
+                                .reduce( function (a, b) {
+                                        return intVal(a) + intVal(b);
+                                }, 0 );
+                        // Update footer
+                        $( api.column(6).footer() ).html(
                                 numeral(alltotal3).format("0,0.00")
                         );
                 }';
@@ -229,6 +231,40 @@ class Thirdpartybalance extends CI_Controller {
             if ($query->num_rows() != 0){
                 foreach ($query->result() as $value) {
                     $arr[$value->outstanding_id] = $value->receive_bank_id;
+                }
+            }
+        }
+        
+        return $arr;
+    }
+    
+    public function get_arr_pp_branch($in='') {
+        $arr = array();
+        if ($in != ''){
+            $sql  = 'SELECT p.pp_id, b.branch_name FROM payment_process AS p ';
+            $sql .= 'INNER JOIN branch AS b ON p.branch_id=b.branch_id ';
+            $sql .= 'WHERE p.pp_id IN('.$in.')';
+            $query = $this->db->query($sql);
+            if ($query->num_rows() != 0){
+                foreach ($query->result() as $value) {
+                    $arr[$value->pp_id] = $value->branch_name;
+                }
+            }
+        }
+        
+        return $arr;
+    }
+    
+    public function get_arr_rb_branch($in='') {
+        $arr = array();
+        if ($in != ''){
+            $sql  = 'SELECT r.receive_bank_id, b.branch_name FROM receive_bank AS r ';
+            $sql .= 'INNER JOIN branch AS b ON r.branch_id=b.branch_id ';
+            $sql .= 'WHERE r.receive_bank_id IN('.$in.')';
+            $query = $this->db->query($sql);
+            if ($query->num_rows() != 0){
+                foreach ($query->result() as $value) {
+                    $arr[$value->receive_bank_id] = $value->branch_name;
                 }
             }
         }

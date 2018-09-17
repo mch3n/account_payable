@@ -1160,22 +1160,31 @@ class Summaryreport extends CI_Controller {
     
     public function get_bank_balance($startdate='') {
         $previous = array();
-        $end_date = date('Y-m-d', strtotime('-1 day', strtotime($startdate)));
-        
-        $sql = 'SELECT b.branch_id, a.account_id, b.branch_name, SUM(L.debit) AS total_debit, SUM(L.credit) AS total_credit
-        FROM ledger AS L INNER JOIN transactions AS t ON L.trans_id=t.trans_id 
-        INNER JOIN account AS a ON L.account_id=a.account_id 
-        INNER JOIN branch AS b ON b.branch_id=a.branch_id 
-        WHERE L.account_id IN (7,8,9,10,11,12,13) AND t.trans_date BETWEEN "2018-02-01" AND "'.$end_date.'" ';
-        $sql .= 'GROUP BY b.branch_id, a.account_id';
-        
-        $query = $this->db->query($sql);
-        if ($query->num_rows()!=0){
-            foreach ($query->result() as $value) {
-                $total = $value->total_debit - $value->total_credit;
-                $previous[] = $total;
+        if ($startdate == '2018-02-01'){
+            $opening = $this->get_opening_balance('2018-02-01', '2018-02-28');
+            if ($opening->num_rows() != 0) {
+                foreach ($opening->result() as $value) {
+                    $previous[] = $value->total;
+                }
+            }
+        } else {
+            $end_date = date('Y-m-d', strtotime('-1 day', strtotime($startdate)));
+            $sql = 'SELECT b.branch_id, a.account_id, b.branch_name, SUM(L.debit) AS total_debit, SUM(L.credit) AS total_credit
+            FROM ledger AS L INNER JOIN transactions AS t ON L.trans_id=t.trans_id 
+            INNER JOIN account AS a ON L.account_id=a.account_id 
+            INNER JOIN branch AS b ON b.branch_id=a.branch_id 
+            WHERE L.account_id IN (7,8,9,10,11,12,13) AND t.trans_date BETWEEN "2018-02-01" AND "'.$end_date.'" ';
+            $sql .= 'GROUP BY b.branch_id, a.account_id';
+            $query = $this->db->query($sql);
+            if ($query->num_rows()!=0){
+                foreach ($query->result() as $value) {
+                    $total = $value->total_debit - $value->total_credit;
+                    $previous[] = $total;
+                }
             }
         }
+        
+        
         return $previous;
     }
     

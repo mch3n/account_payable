@@ -157,6 +157,22 @@ class Ppdetail extends CI_Controller {
                 if ($pp_type == 4){
                     $title = 'PP Project';
                     $data['pp_info'] = $this->ppdetail_model->get_payment_process($pp_id);
+                    $pp_info = $this->ppdetail_model->get_payment_process($pp_id);
+                    $project_debit_id = 0;
+                    if ($pp_info->num_rows()!=0){
+                        $row = $pp_info->row();
+                        $project_debit_id = $row->project_debit_id;
+                    }
+                    $this->load->model('project_debit_model');
+                    $project_list = $this->get_project_debit_list();
+                    $project_opt = array();
+                    if ($project_list->num_rows()!=0){
+                        $project_opt[0] = 'None';
+                        foreach ($project_list->result() as $value) {
+                            $project_opt[$value->project_debit_id] = $value->vendor_name .' - '. $value->project_title;
+                        }
+                    }
+                    $data['project_debit_id'] = $this->general_model->draw_select('Select Project Title', 0, 'project_debit_id', 1, $project_opt, $project_debit_id, 1);
                     $halaman = 'ppdetail/ppproject_detail.php';
                     $data['show_modal'] = 'ppdetail/ppproject_modal.php';
                 }
@@ -621,6 +637,76 @@ class Ppdetail extends CI_Controller {
     
     public function get_outstanding($pp_id=0) {
         $sql = 'SELECT * FROM outstanding WHERE pp_id='.$pp_id;
+        $query = $this->db->query($sql);
+        return $query;
+    }
+    
+    public function pp_project_update_project_debit_id() {
+        $pp_id = $this->input->post('pp_id');
+        $project_debit_id = $this->input->post('project_debit_id');
+        // get vendor id
+        $vendor_id = 0;
+        $projectdebit = $this->get_project_debit_by_id($project_debit_id);
+        if ($projectdebit->num_rows()!=0){
+            $row = $projectdebit->row();
+            $vendor_id = $row->vendor_id;
+        }
+        // update payment process
+        $data = array(
+            'vendor_id' => $vendor_id,
+            'project_debit_id' => $project_debit_id
+        );
+        $this->db->where('pp_id', $pp_id);
+        $this->db->update('payment_process', $data);
+        
+        
+        
+        // cek project_balance by pp_id
+        $project_balance = $this->get_project_balance_by_id($pp_id);
+        if ($project_balance->num_rows()!=0){
+            // update project_balance
+            $data_project_balance = array(
+                'project_debit_id' => $project_debit_id,
+                'vendor_id' => $vendor_id
+            );
+            $this->db->where('pp_id', $pp_id);
+            $this->db->update('project_balance', $data_project_balance);
+        } else {
+            $arrpp = $this->get_payment_process_by_id($pp_id);            
+            $data_project = array(
+                'balance_date' => $arrpp[1],
+                'vendor_id' => $vendor_id,
+                'pp_id' => $pp_id,
+                'project_debit_id' => $project_debit_id,
+                'debit' => 0,
+                'credit' => $arrpp[3]
+            );
+            $this->db->insert('project_balance', $data_project);
+        }
+        
+        $encrypt_id = $this->input->post('pp_encrypt');
+        $link = '/ppdetail/go/' . $this->asik_model->category_configuration;
+        $link .= $this->asik_model->config_01 . '/'.$encrypt_id.'/4';
+        redirect($link);
+    }
+    
+    public function get_project_debit_list(){
+        $sql  = 'SELECT p.*, v.vendor_name FROM project_debit AS p ';
+        $sql .= 'INNER JOIN vendor AS v ON p.vendor_id=v.vendor_id';
+        $query = $this->db->query($sql);
+        return $query;
+    }
+    
+    public function get_project_debit_by_id($id=0){
+        $sql  = 'SELECT p.*, v.vendor_name FROM project_debit AS p ';
+        $sql .= 'INNER JOIN vendor AS v ON p.vendor_id=v.vendor_id ';
+        $sql .= 'WHERE p.project_debit_id='.$id;
+        $query = $this->db->query($sql);
+        return $query;
+    }
+    
+    public function get_project_balance_by_id($pp_id=0) {
+        $sql = 'SELECT * FROM project_balance WHERE pp_id='.$pp_id;
         $query = $this->db->query($sql);
         return $query;
     }

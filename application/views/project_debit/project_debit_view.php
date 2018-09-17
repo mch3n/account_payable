@@ -66,6 +66,7 @@
                         <th>Number</th>
                         <th>Title</th>
                         <th>Vendor</th>
+                        <th>Outlet</th>
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -85,6 +86,7 @@
                         echo '<td>'.$value->project_number.'</td>';
                         echo '<td>'.$value->project_title.'</td>';
                         echo '<td>'.$value->vendor_name.'</td>';
+                        echo '<td>'.$value->branch_name.'</td>';
                         echo '<td>'.number_format($value->amount).'</td>';
                         echo '<td>'.$this->project_debit_model->arr_status[$value->project_status].'</td>';
                         echo '<td>';
@@ -123,6 +125,7 @@
                         <th>Number</th>
                         <th>Title</th>
                         <th>Vendor</th>
+                        <th>Outlet</th>
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Action</th>

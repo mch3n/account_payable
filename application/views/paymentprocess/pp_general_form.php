@@ -69,16 +69,19 @@ echo form_open($actionlink);
             echo '<input type="hidden" name="pp_encrypt" value="">';
             echo '<input type="hidden" name="pp_detail_id" value="">';
             echo '<table class="table table-bordered">';
+            echo '<tr>';
+            echo '<th colspan="7"><textarea name="description" class="form-control" rows="3" placeholder="type description here..."></textarea></th>';
+            echo '</tr>';
             echo '<tr>
                 <th>#</th>
                 <th><input class="form-control input-sm" type="text" placeholder="Auto" disabled></th>
                 <th><input name="job_order" class="form-control input-sm" type="text" placeholder="Ref. No."></th>
-                <th><input name="description" class="form-control input-sm" type="text" placeholder="Description.."></th>
                 <th><input name="unit" class="form-control input-sm numberic" type="text" placeholder="Unit"></th>
                 <th><input name="price" class="form-control input-sm currency" type="text" placeholder="Price"></th>
                 <th><input class="form-control input-sm" type="text" placeholder="Auto" disabled></th>
                 <th class="text-right"><input type="submit" class="btn btn-primary btn-sm" value="Save"></th>
             </tr>';
+            
             echo '</table>';
             }
             ?>
