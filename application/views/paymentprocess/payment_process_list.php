@@ -55,15 +55,18 @@
                     <label class="sr-only">Status</label>
                     <select class="form-control" name="field_status">
                         <?php
-                            echo '<option value="0">All Status</option>';
+                            echo '<option value="5">All Status</option>';
                             foreach ($this->payment_process_model->pp_status_opt as $key => $value) {
-                                
+                                if ($field_status == $key){
+                                    echo '<option selected="selected" value="'.$key.'">'.$value.'</option>';
+                                } else {
                                     echo '<option value="'.$key.'">'.$value.'</option>';
-                               
+                                }                               
                             }
                         ?>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label class="sr-only">Fields</label>
                     <select class="form-control" name="field_search">

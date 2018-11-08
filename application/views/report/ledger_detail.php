@@ -67,7 +67,7 @@
                         <th>Date</th>
                         <th>Remark</th>
                         <th>PP Number</th>
-                        <th>Title</th>
+                        <th>Description</th>
                         <th class="text-right">Debit</th>
                         <th class="text-right">Credit</th>
                         <th class="text-right">Balance</th>

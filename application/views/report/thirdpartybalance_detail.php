@@ -42,10 +42,15 @@
                             $outlet = $arr_pp_branch[$value->pp_id];
                         } 
                         if ($value->receive_bank_id != 0){
-                            $number = $arr_rb_number[$value->receive_bank_id];
+                            if (isset($arr_rb_number[$value->receive_bank_id])){
+                                $number = $arr_rb_number[$value->receive_bank_id];
+                            }
+                            
                             $enc_id = $this->general_model->encrypt_value($value->receive_bank_id);
                             $linkdetail = 'receiveinbank/detail/20191121214305/'.$enc_id;
-                            $outlet = $arr_rb_branch[$value->receive_bank_id];
+                            if (isset($arr_rb_branch[$value->receive_bank_id])){
+                                $outlet = $arr_rb_branch[$value->receive_bank_id];
+                            }                            
                         }
                         echo '<tr>
                             <td>'.$no.'</td>

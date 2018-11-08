@@ -357,7 +357,7 @@ class General_model extends CI_Model {
         return $query;
     }
     
-    public function get_user_by_id($id = '') {
+    public function get_user_by_id($id = 0) {
         $sql = 'SELECT * FROM users WHERE user_id =' . $id;
         $query = $this->db->query($sql);
         $fullname = '';

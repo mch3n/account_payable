@@ -32,7 +32,7 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
         return $query;
     }
     
-    public function get_payment_process_list($start_date='', $end_date='', $field_search='', $keyword='', $field_status=0, $pp_type=0) {
+    public function get_payment_process_list($start_date='', $end_date='', $field_search='', $keyword='', $field_status=5, $pp_type=0) {
         $sql  = 'SELECT pp.*, b.branch_name FROM payment_process AS pp ';
         $sql .= 'INNER JOIN branch AS b ON pp.branch_id=b.branch_id ';
         $sql .= 'WHERE  ';
@@ -44,11 +44,11 @@ class Payment_process_model extends CI_Model {//To be check, To Be Approve, Appr
             if ($keyword != ''){
                 $sql .= ' AND '.$field_search.' LIKE "%'.$keyword.'%" ';
             }
-            if ($field_status != 0){
+            if ($field_status != 5){
                 $sql .= ' AND pp_status='.$field_status.' ';
             }
         } else {
-            if ($field_status != 0){
+            if ($field_status != 5){
                 $sql .= ' pp_status='.$field_status.' ';
                 if ($keyword != ''){
                     $sql .= ' AND '.$field_search.' LIKE "%'.$keyword.'%" ';

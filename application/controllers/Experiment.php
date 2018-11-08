@@ -18,6 +18,21 @@ class Experiment extends CI_Controller {
         $this->load->model('supplier_report_model');
         $this->load->model('general_model');
     }
+
+    public $category_index = 0;
+    public $category = '';
+    public $module = '';
+
+    public function is_check_module($string = '', $category = '', $module = '') {
+        $category_dash = $this->asik_model->category_dashboard;
+        if ($category == $category_dash) {
+            if (($module == $this->asik_model->dash_01) && ($string == $category . $module)) {
+                $this->category_index = 0;
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
     
     public function get_payment_process_debit() {
         $sql = 'SELECT pp.* FROM payment_process AS pp 
@@ -213,388 +228,6 @@ class Experiment extends CI_Controller {
         }
     }
     
-    public function generate_string_third_party() {
-        $pp_number = '42
-45
-47
-48
-49
-50
-51
-53
-59
-60
-61
-65
-69
-70
-72
-74
-75
-76
-77
-78
-82
-89
-91
-92
-93
-94
-96
-97
-98
-99
-100
-109
-112
-113
-115
-116
-118
-119
-120
-123
-124
-125
-126
-128
-129
-132
-133
-134
-141
-144
-145
-154
-162
-169
-170
-171
-174
-176
-177
-178
-179
-180
-181
-184
-199
-204
-205
-209
-210
-211
-213
-214
-219
-220
-237
-249
-250
-251
-288
-313
-337
-338
-339
-340
-341
-342
-343
-344
-345
-346
-367
-380
-389
-392
-446
-473
-483
-582
-587
-594
-611
-646
-653
-663
-695
-715
-729
-732
-733
-735
-742
-743
-744
-746
-751
-753
-754
-758
-763
-768
-776
-777';
-        
-$third_party_id = '2
-1
-3
-0
-3
-3
-3
-3
-3
-3
-3
-0
-3
-3
-2
-0
-4
-3
-2
-1
-3
-0
-4
-4
-6
-2
-6
-6
-5
-7
-8
-0
-4
-3
-3
-8
-9
-3
-3
-4
-11
-10
-5
-12
-2
-14
-3
-13
-2
-5
-5
-20
-4
-15
-16
-17
-5
-3
-4
-4
-4
-4
-4
-3
-2
-46
-46
-48
-11
-4
-2
-34
-4
-4
-3
-2
-3
-2
-62
-63
-20
-22
-20
-20
-21
-21
-19
-19
-12
-20
-2
-3
-2
-3
-3
-5
-3
-5
-8
-2
-24
-5
-2
-3
-25
-3
-3
-26
-5
-3
-3
-3
-3
-3
-3
-3
-8
-4
-4
-3
-3
-3';
-
-$ppid = '593
-583
-726
-822
-771
-692
-844
-755
-777
-915
-1042
-1135
-1206
-1190
-1197
-1289
-1249
-883
-1275
-1444
-1393
-1476
-1477
-1544
-1659
-1651
-1654
-1655
-1653
-1792
-1830
-1876
-1911
-1749
-1909
-1873
-1848
-2005
-2133
-2134
-2257
-2256
-2192
-2314
-2281
-2388
-2289
-2360
-2153
-2438
-2439
-2568
-2603
-2626
-2627
-2723
-2745
-2760
-2892
-2894
-2895
-2896
-2897
-2699
-3155
-3280
-3281
-3365
-3370
-3368
-3288
-2666
-3427
-3428
-3499
-3666
-3681
-3670
-3862
-4004
-4037
-4042
-4036
-4035
-4049
-4041
-4029
-4038
-4039
-4034
-4206
-4310
-4350
-4268
-4544
-4604
-4605
-4885
-4942
-4948
-5180
-5402
-5272
-5530
-5881
-5867
-5996
-6090
-6063
-6117
-6148
-6176
-6177
-6207
-6279
-6264
-6318
-6354
-6423
-6427
-6429
-6178';
-        $arr = explode("\n", $pp_number);
-        $arr_id = explode("\n", $third_party_id);
-        $arr_pp = explode("\n", $ppid);
-        $in = 'IN(';
-        for($i=0; $i<sizeof($arr); $i++){
-            echo '<div>UPDATE outstanding SET third_party_id='.$arr_id[$i].', pp_id='.$arr_pp[$i].' WHERE outstanding_id='.$arr[$i].';</div>';
-            $in .='\''.$arr[$i].'\',';
-        }
-        $in = substr($in, 0, strlen($in)-1);
-        $in .= ');';
-        
-    }
-    
     public function testInsert() {
         $sql = "insert into third_party (third_party_id, third_party_name, description)
                 values (29, 'test third party II', 'desc I');";
@@ -602,5 +235,74 @@ $ppid = '593
                 values (30, 'test third party III', 'desc I');";
         $this->db->query($sql);
     }
+    
+    public function get_json() {
+        $arr = [
+            'settings' => [
+                'key' => "daily_mission_01",
+                'value' => [
+                    'rewards'=>[
+                        [
+                            "id"=>"1",
+                            "name"=>"1 Voucher Rezeki Vaganza",
+                            "type"=>"voucher",
+                            "value"=>1
+                        ],
+                        [
+                            "id"=>"2",
+                            "name"=>"2 Ticket",
+                            "type"=>"ticket",
+                            "value"=>2
+                        ]
+                    ]
+                ]
+            ],
+            'description' => 'this is description',
+            'info_page_daily_mission' => 'info page'
+        ];
+
+        $json = json_encode($arr);
+        $data = json_decode($json);
+        echo $data->settings->value->rewards[1]->value;
+    }
+
+    public function draw_datatable(){
+        /* ===== start datatable ===== */
+        $data['datatable_title'] = 'Datatable example ';
+        $footer_total = '';
+        $data['footer_total'] = $footer_total;
+        /* ===== end datatable ===== */
+        $data['active_li'] = 0;
+        $header = $this->asik_model->draw_header('Datatable', 'View', 0, $this->asik_model->category_dashboard, $this->asik_model->dash_01);
+        $data['content_header'] = $header;
+        $data['halaman'] = 'datatable_ex.php';
+
+        $this->load->view('template', $data);
+    }
+
+    // public function go_datatable($string = '') {
+    //     $this->asik_model->is_login();
+    //     $category = substr($string, 0, 6);
+    //     $module = substr($string, 6, 8);
+    //     $is_module = $this->is_check_module($string, $category, $module);
+    //     if ($is_module) {
+    //         if ($this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_view_data)) {
+    //             $this->category = $category;
+    //             $this->module = $module;
+    //             /* ===== get active period ===== */
+                
+    //             $header = $this->asik_model->draw_header('Datatable', $period_title, $this->category_index, $category, $module);
+    //             $data['content_header'] = $header;
+    //             $data['active_li'] = $this->category_index;
+    //             $data['page_name'] = 'Datatable';
+    //             $data['halaman'] = 'datatable_ex.php';
+    //             $this->load->view('template', $data);
+    //         } else {
+    //             show_404();
+    //         }
+    //     } else {
+    //         show_404();
+    //     }
+    // }
     
 }

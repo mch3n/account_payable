@@ -11,7 +11,7 @@
  *
  * @author Hendra McHen
  */
-class Summaryreport extends CI_Controller {
+class Summaryreportnew extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -87,9 +87,9 @@ class Summaryreport extends CI_Controller {
         $this->asik_model->is_login();
         $category = substr($string, 0, 6);
         $module = substr($string, 6, 8);
-        $is_module = $this->is_check_module($string, $category, $module);
-        if ($is_module) {
-            if ($this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_view_data)) {
+        // $is_module = $this->is_check_module($string, $category, $module);
+        // if ($is_module) {
+        //     if ($this->asik_model->is_privilege($category, $module, $this->session->userdata('priv_group_id'), $this->asik_model->action_view_data)) {
                 $this->category = $category;
                 $this->module = $module;
                 /* start privilege */
@@ -153,11 +153,9 @@ class Summaryreport extends CI_Controller {
                 if ($reporthistory->num_rows() != 0) {
                     $row = $reporthistory->row();
                     $report_id = $row->report_file_id;
-                    $checked_id = ($row->checked_by == null || $row->checked_by == '')? 0 : $row->checked_by;
-                    $approved_id = ($row->approved_by == null || $row->approved_by == '')? 0: $row->approved_by;
-                    $checked_name = $this->general_model->get_user_by_id($checked_id);
+                    $checked_name = $this->general_model->get_user_by_id($row->checked_by);
                     if ($row->approved_by != 0) {
-                        $approved_name = $this->general_model->get_user_by_id($approved_id);
+                        $approved_name = $this->general_model->get_user_by_id($row->approved_by);
                     }
                     $report_file = $row->file_name;
                 }
@@ -227,15 +225,15 @@ class Summaryreport extends CI_Controller {
                 $data['active_li'] = $this->category_index;
                 $header = $this->asik_model->draw_header('Summary Report', 'View', $this->category_index, $this->category, $this->module);
                 $data['content_header'] = $header;
-                $data['halaman'] = 'report/summary_report.php';
+                $data['halaman'] = 'report/summary_report1.php';
 
                 $this->load->view('template', $data);
-            } else {
-                show_404();
-            }
-        } else {
-            show_404();
-        }
+        //     } else {
+        //         show_404();
+        //     }
+        // } else {
+        //     show_404();
+        // }
     }
 
     public function get_inisialisasi($branch=array()){
@@ -532,18 +530,11 @@ class Summaryreport extends CI_Controller {
     }
 
     public function get_receive_bank($start_date = '', $end_date = '') {
-        // $sql = 'SELECT SUM(t.amount) AS total, b.branch_name FROM transactions AS t
-        // INNER JOIN account AS a ON t.account_id=a.account_id
-        // INNER JOIN branch AS b ON a.branch_id=b.branch_id
-        // WHERE t.trans_date BETWEEN "'.$start_date.'" AND "'.$end_date.'" AND a.account_type=2 AND a.account_name LIKE "Retained%" 
-        // GROUP BY a.account_id';
-        // $query = $this->db->query($sql);
-        // return $query;
-
-        $sql = 'SELECT SUM(rb.amount)AS total, b.branch_name FROM receive_bank AS rb
-        INNER JOIN branch AS b ON b.branch_id=rb.branch_id
-        WHERE rb.receive_bank_date BETWEEN "' . $start_date . '" AND "' . $end_date . ' "
-        GROUP BY rb.branch_id ORDER BY b.branch_id';
+        $sql = 'SELECT SUM(t.amount) AS total, b.branch_name FROM transactions AS t
+        INNER JOIN account AS a ON t.account_id=a.account_id
+        INNER JOIN branch AS b ON a.branch_id=b.branch_id
+        WHERE t.trans_date BETWEEN "'.$start_date.'" AND "'.$end_date.'" AND a.account_type=2 AND a.account_name LIKE "Retained%" 
+        GROUP BY a.account_id';
         $query = $this->db->query($sql);
         return $query;
     }

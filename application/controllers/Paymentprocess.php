@@ -65,7 +65,7 @@ class Paymentprocess extends CI_Controller {
                 $end_date = $this->input->post('end_date')==''?$ehdate:$this->input->post('end_date');
                 $field_search = $this->input->post('field_search');
                 $keyword = $this->input->post('keyword');
-                $field_status = $this->input->post('field_status');
+                $field_status = $this->input->post('field_status')==''?5:$this->input->post('field_status');
                 if ($button == 0){
                     $data['list'] = $this->payment_process_model->get_payment_process_list($start_date, $end_date, $field_search, $keyword, $field_status, $pp_type);
                 } else {
@@ -142,7 +142,7 @@ class Paymentprocess extends CI_Controller {
                 $supplier_opt = array();
                 if ($supplier->num_rows()!=0){
                     foreach ($supplier->result() as $value) {
-                        $supplier_opt[$value->credit_invoice_id] = $value->supplier_name.' - '.$value->branch_name;
+                        $supplier_opt[$value->credit_invoice_id] = $value->supplier_name.' - '.$value->branch_name .' ('.$value->credit_invoice_number.')';
                     }
                 }
                 $this->load->model('branch_model');

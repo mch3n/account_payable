@@ -200,6 +200,65 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <script>
 $(document).ready(function() {
 
+    $('#example').DataTable( {
+        dom: 'Bfrtip',
+       
+        lengthMenu: [
+            [ 10, 25, 50, 100, -1 ],
+            [ '10 rows', '25 rows', '50 rows', '100 rows', 'Show all' ]
+        ],
+        buttons: [
+            //'copy', 'csv', 'excel', 'pdf', 'print'
+            
+            {
+                title: '<?php echo $datatable_title ?>',
+                extend: 'copy',
+		footer: true,
+            },
+            {
+                title: '<?php echo $datatable_title ?>',
+                extend: 'csv',
+		footer: true,
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                title: '<?php echo $datatable_title ?>',
+                extend: 'excel',
+		footer: true,
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                title: '<?php echo $datatable_title ?>',
+                extend: 'print',
+                text: 'Print all',
+		footer: true,
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+
+            {
+                extend: 'pageLength'
+            }
+            
+        ],
+        "ajax": "<?php echo base_url(); ?>application/views/objects.txt",
+        "columns": [
+            { "data": "ktp" },
+            { "data": "email" },
+            { "data": "mobile" },
+            { "data": "reward.value" },
+            { "data": "user_id" },
+            { "data": "full_name" },
+            { "data": "voucher_code"}
+        ]
+    } );
+
+
     //Date picker
     $('.datepicker').datepicker({
       format: "yyyy-mm-dd",
